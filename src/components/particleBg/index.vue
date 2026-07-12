@@ -48,8 +48,6 @@
       v-if="layers.advancedParticles.enabled"
       class="bg-canvas"
       :style="{ opacity: layers.advancedParticles.opacity }"
-      @mousemove="onAdvancedMouseMove"
-      @mouseleave="onAdvancedMouseLeave"
     ></canvas>
 
     <!-- 遮罩层 -->
@@ -354,6 +352,10 @@ export default {
       this.advancedParticles = []
       this.advancedElapsed = 0
       this.advancedLastTime = performance.now()
+
+      // 用 document 监听鼠标（canvas 父容器 pointer-events:none 会屏蔽元素事件）
+      document.addEventListener("mousemove", this.onAdvancedMouseMove)
+      document.addEventListener("mouseleave", this.onAdvancedMouseLeave)
       this.advancedFrame(performance.now())
     },
 
@@ -412,8 +414,10 @@ export default {
         }
 
         // 阻尼
-        p.vx *= 0.995
-        p.vy *= 0.995
+                const curSpeed2 = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+        const damp = curSpeed2 > 3 ? 0.999 : 0.995  // 高速粒子阻尼更小
+        p.vx *= damp
+        p.vy *= damp
 
         p.x += p.vx
         p.y += p.vy
@@ -426,9 +430,13 @@ export default {
         ctx.fill()
 
         // 拖尾
-        if (cfg.trailLength > 0) {
+
+          // 拖尾长度随速度动态变化: 快粒子拖尾长（流星效果）
+          const curSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+          const dynTrailLen = Math.ceil(curSpeed * 3)
+          const maxTrailLen = cfg.trailLength > 0 ? Math.max(cfg.trailLength, dynTrailLen) : dynTrailLen
           p.trail.push({ x: p.x, y: p.y })
-          if (p.trail.length > cfg.trailLength) p.trail.shift()
+          while (p.trail.length > Math.min(maxTrailLen, 30)) p.trail.shift()
           for (let t = 0; t < p.trail.length; t++) {
             const tp = p.trail[t]
             const alpha = (t / p.trail.length) * 0.3
@@ -438,7 +446,7 @@ export default {
             ctx.arc(tp.x, tp.y, cfg.size * (t / p.trail.length), 0, Math.PI * 2)
             ctx.fill()
           }
-        }
+
 
         p.life += dt
       }
@@ -449,9 +457,16 @@ export default {
 
     spawnAdvancedParticle(cfg) {
       // 从页面四边随机位置生成，向内飞入
+
+      // 宽速度分布: 指数分布，少数极快（流星）、多数中等、少数很慢
+      const roll = Math.random()
+      const speed = roll < 0.15
+        ? 3 + Math.random() * 7   // 15% 流星: 速度 3~10
+        : roll < 0.45
+          ? 1 + Math.random() * 3   // 30% 快速: 速度 1~4
+          : 0.1 + Math.random() * 1.2 // 55% 慢速: 速度 0.1~1.3
       const edge = Math.floor(Math.random() * 4)
       let x, y, vx, vy
-      const speed = 0.3 + Math.random() * 1.5
       const angle = Math.random() * Math.PI * 2
 
       switch (edge) {
@@ -480,13 +495,15 @@ export default {
           vy = Math.sin(angle) * speed
       }
 
-      return { x, y, vx, vy, trail: [], life: 0 }
+      return { x, y, vx, vy, trail: [], life: 0, baseSpeed: speed }
     },
 
     destroyAdvancedParticles() {
       if (this.advancedAnimId) { cancelAnimationFrame(this.advancedAnimId); this.advancedAnimId = null }
       this.advancedParticles = []
       this.advancedElapsed = 0
+      document.removeEventListener("mousemove", this.onAdvancedMouseMove)
+      document.removeEventListener("mouseleave", this.onAdvancedMouseLeave)
     },
 
     // ========== 通用 ==========

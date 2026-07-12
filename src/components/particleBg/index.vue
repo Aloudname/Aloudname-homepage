@@ -1,92 +1,86 @@
 <!--
-  动态背景组件 v2
-  - 多图层叠加：图片/视频 + 粒子 + 渐变可同时渲染
-  - 每层独立透明度控制
-  - 高级粒子：鼠标引力捕获、边缘生成、数量渐进增长
-  - 背景图缓慢平移（视差效果）
-  - 配置从 page_config 的 background section 读取
+  动态背景组件 v3
+  z-index 层级（从底到顶）：
+    背景图(0) → Banner图(0) → 视频(0) → 渐变(0) → 遮罩(0)
+    → 页面内容(#app z-index:1)
+    → 基础粒子(3) → 高级粒子(3)
+    → 光标特效(9999)
 -->
 <template>
-  <div class="particle-bg-wrapper" ref="wrapper">
-    <!-- 图层1: 静态图片（支持缓慢平移） -->
-    <div
-      v-if="layers.image.enabled && layers.image.url"
-      class="bg-image"
-      :style="imageStyle"
-    ></div>
+  <div class="bg-root">
+    <!-- ====== 底层: 静态图层 ====== -->
+    <div class="bg-layers">
+      <!-- 背景图 -->
+      <div
+        v-if="layers.image.enabled && layers.image.url"
+        class="bg-image"
+        :style="imageStyle('image')"
+      ></div>
 
-    <!-- 图层2: 视频背景 -->
-    <video
-      v-if="layers.video.enabled && layers.video.url"
-      class="bg-video"
-      :src="layers.video.url"
-      autoplay
-      loop
-      muted
-      playsinline
-      :style="{ opacity: layers.video.opacity }"
-    ></video>
+      <!-- Banner 图 -->
+      <div
+        v-if="layers.banner.enabled && layers.banner.url"
+        class="bg-image"
+        :style="imageStyle('banner')"
+      ></div>
 
-    <!-- 图层3: 渐变色 -->
-    <div
-      v-if="layers.gradient.enabled && layers.gradient.colors.length"
-      class="bg-gradient"
-      :style="{ background: gradientStyle, opacity: layers.gradient.opacity }"
-    ></div>
+      <!-- 视频 -->
+      <video
+        v-if="layers.video.enabled && layers.video.url"
+        class="bg-video"
+        :src="layers.video.url"
+        autoplay loop muted playsinline
+        :style="{ opacity: layers.video.opacity }"
+      ></video>
 
-    <!-- 图层4: 基础粒子 Canvas -->
-    <canvas
-      ref="particleCanvas"
-      v-if="layers.basicParticles.enabled"
-      class="bg-canvas"
-      :style="{ opacity: layers.basicParticles.opacity }"
-    ></canvas>
+      <!-- 渐变 -->
+      <div
+        v-if="layers.gradient.enabled && layers.gradient.colors.length"
+        class="bg-gradient"
+        :style="{ background: gradientStyle, opacity: layers.gradient.opacity }"
+      ></div>
 
-    <!-- 图层5: 高级粒子 Canvas（物理模拟） -->
-    <canvas
-      ref="advancedCanvas"
-      v-if="layers.advancedParticles.enabled"
-      class="bg-canvas"
-      :style="{ opacity: layers.advancedParticles.opacity }"
-    ></canvas>
+      <!-- 遮罩 -->
+      <div
+        class="bg-overlay"
+        :style="{ background: `rgba(0,0,0,${overlayOpacity})` }"
+      ></div>
+    </div>
 
-    <!-- 遮罩层 -->
-    <div
-      class="bg-overlay"
-      :style="{ background: `rgba(0,0,0,${overlayOpacity})` }"
-    ></div>
+    <!-- ====== 顶层: 粒子 ====== -->
+    <div class="bg-particles">
+      <canvas
+        ref="particleCanvas"
+        v-if="layers.basicParticles.enabled"
+        class="bg-canvas"
+        :style="{ opacity: layers.basicParticles.opacity }"
+      ></canvas>
+
+      <canvas
+        ref="advancedCanvas"
+        v-if="layers.advancedParticles.enabled"
+        class="bg-canvas"
+        :style="{ opacity: layers.advancedParticles.opacity }"
+      ></canvas>
+    </div>
   </div>
 </template>
 
 <script>
 
-// 默认图层配置
 const DEFAULT_LAYER = {
-  image: { enabled: true, url: '', opacity: 1, panSpeed: 0 },
-  video: { enabled: false, url: '', opacity: 1 },
-  gradient: { enabled: false, colors: [], opacity: 1 },
+  image:   { enabled: true,  url: '', opacity: 1, panSpeed: 0 },
+  banner:  { enabled: false, url: '', opacity: 1, panSpeed: 0 },
+  video:   { enabled: false, url: '', opacity: 1 },
+  gradient:{ enabled: false, colors: [], opacity: 1 },
   basicParticles: {
-    enabled: false,
-    opacity: 1,
-    count: 80,
-    color: '#ffffff',
-    speed: 1.5,
-    shape: 'circle',
-    connectDistance: 150,
-    maxRadius: 3,
+    enabled: false, opacity: 1, count: 80, color: '#ffffff',
+    speed: 1.5, shape: 'circle', connectDistance: 150, maxRadius: 3,
   },
   advancedParticles: {
-    enabled: false,
-    opacity: 1,
-    maxCount: 60,
-    spawnRate: 0.5,
-    particleMass: 1,
-    cursorMass: 50,
-    gravityRange: 200,
-    gravityStrength: 0.5,
-    size: 4,
-    color: '#ff6b9d',
-    trailLength: 5,
+    enabled: false, opacity: 1, maxCount: 60, spawnRate: 0.5,
+    particleMass: 1, cursorMass: 50, gravityRange: 200,
+    gravityStrength: 0.5, size: 4, color: '#ff6b9d', trailLength: 5,
   },
 }
 
@@ -105,21 +99,12 @@ export default {
     return {
       layers: cloneDefaults(),
       overlayOpacity: 0.4,
-      imageOffsetX: 0,
-      imageOffsetY: 0,
-      basicParticles: [],
-      basicAnimId: null,
-      basicCtx: null,
-      basicWidth: 0,
-      basicHeight: 0,
-      advancedParticles: [],
-      advancedAnimId: null,
-      advancedCtx: null,
-      advancedWidth: 0,
-      advancedHeight: 0,
+      imgOffsets: { image: { x: 0, y: 0 }, banner: { x: 0, y: 0 } },
+      basicParticles: [], basicAnimId: null, basicCtx: null, basicWidth: 0, basicHeight: 0,
+      advancedParticles: [], advancedAnimId: null, advancedCtx: null,
+      advancedWidth: 0, advancedHeight: 0,
       advancedMouse: { x: -9999, y: -9999, active: false },
-      advancedElapsed: 0,
-      advancedLastTime: 0,
+      advancedElapsed: 0, advancedLastTime: 0,
     }
   },
 
@@ -129,30 +114,14 @@ export default {
       if (c.length >= 2) return `linear-gradient(135deg, ${c.join(', ')})`
       return c[0] || '#1a1a2e'
     },
-    imageStyle() {
-      const s = this.layers.image
-      return {
-        backgroundImage: `url(${s.url})`,
-        opacity: s.opacity,
-        backgroundSize: s.panSpeed > 0 ? '120% auto' : 'cover',
-        backgroundPosition: `${50 + this.imageOffsetX}% ${50 + this.imageOffsetY}%`,
-        backgroundRepeat: 'no-repeat',
-      }
-    },
   },
 
-  // ★ 合并为单一 watch 块（之前两个会互相覆盖）
   watch: {
-    config: {
-      immediate: true,
-      deep: true,
-      handler(val) {
-        if (val && Object.keys(val).length) {
-          this.applyConfig(val)
-        }
-      },
+    config: { immediate: true, deep: true,
+      handler(val) { if (val && Object.keys(val).length) this.applyConfig(val) },
     },
-    'layers.image.panSpeed'() { this.initPanning() },
+    'layers.image.panSpeed'()  { this.startPanning('image') },
+    'layers.banner.panSpeed'() { this.startPanning('banner') },
     'layers.basicParticles.enabled'(v) {
       if (v) this.$nextTick(() => this.initBasicParticles())
       else this.destroyBasicParticles()
@@ -165,63 +134,64 @@ export default {
 
   mounted() {
     window.addEventListener('resize', this.handleResize)
-    // 如果初始就有启用的粒子层，立即初始化
     if (this.layers.basicParticles.enabled) this.$nextTick(() => this.initBasicParticles())
     if (this.layers.advancedParticles.enabled) this.$nextTick(() => this.initAdvancedParticles())
-    this.initPanning()
+    this.startPanning('image')
+    this.startPanning('banner')
   },
 
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize)
+    this.stopPanning('image')
+    this.stopPanning('banner')
     this.destroyBasicParticles()
     this.destroyAdvancedParticles()
   },
 
   methods: {
-    // ========== 配置加载 ==========
+    // ===== 样式 =====
+    imageStyle(layer) {
+      const s = this.layers[layer]
+      const o = this.imgOffsets[layer]
+      return {
+        backgroundImage: `url(${s.url})`,
+        opacity: s.opacity,
+        backgroundSize: s.panSpeed > 0 ? '120% auto' : 'cover',
+        backgroundPosition: `${50 + o.x}% ${50 + o.y}%`,
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+      }
+    },
+
+    // ===== 配置 =====
     applyConfig(cfg) {
       if (!cfg || !Object.keys(cfg).length) return
-
       try {
-        // 兼容旧版: 有 type 但没有 layers（从旧版编辑器保存的数据）
-        if (cfg.type && !cfg.layers) {
-          this.migrateOldConfig(cfg)
-        }
-
-        // 新版 layers 结构
+        if (cfg.type && !cfg.layers) this.migrateOldConfig(cfg)
         if (cfg.layers) {
-          const src = cfg.layers
           for (const key of Object.keys(DEFAULT_LAYER)) {
-            if (src[key] && typeof src[key] === 'object') {
-              this.$set(this.layers, key, { ...this.layers[key], ...src[key] })
+            if (cfg.layers[key] && typeof cfg.layers[key] === 'object') {
+              this.$set(this.layers, key, { ...this.layers[key], ...cfg.layers[key] })
             }
           }
         }
+        if (cfg.overlay_opacity !== undefined) this.overlayOpacity = cfg.overlay_opacity
+      } catch (err) { console.warn('[ParticleBg] applyConfig:', err.message) }
 
-        if (cfg.overlay_opacity !== undefined) {
-          this.overlayOpacity = cfg.overlay_opacity
-        }
-      } catch (err) {
-        console.warn('[ParticleBg] applyConfig 出错:', err.message)
-      }
-
-      // 根据最终配置决定初始化/销毁
       this.$nextTick(() => {
         if (this.layers.basicParticles.enabled) this.initBasicParticles()
         else this.destroyBasicParticles()
         if (this.layers.advancedParticles.enabled) this.initAdvancedParticles()
         else this.destroyAdvancedParticles()
-        this.initPanning()
+        this.startPanning('image')
+        this.startPanning('banner')
       })
     },
 
-    // 兼容旧版单选 type 配置（只有一张图/视频/粒子）
     migrateOldConfig(cfg) {
-      // 先全部关闭
       for (const k of Object.keys(this.layers)) {
-        const obj = this.layers[k]
-        if (obj && typeof obj.enabled === 'boolean') {
-          this.$set(obj, 'enabled', false)
+        if (this.layers[k] && typeof this.layers[k].enabled === 'boolean') {
+          this.$set(this.layers[k], 'enabled', false)
         }
       }
       if (cfg.type === 'image' && cfg.image_url) {
@@ -243,24 +213,27 @@ export default {
       }
     },
 
-    // ========== 图片平移 ==========
-    initPanning() {
-      const speed = this.layers.image.panSpeed || 0
+    // ===== 平移动画 =====
+    startPanning(layer) {
+      this.stopPanning(layer)
+      const speed = this.layers[layer].panSpeed || 0
       if (speed <= 0) return
-
       let elapsed = 0
-      const animate = (ts) => {
-        elapsed += 0.016 // ~60fps
-        // 缓慢正弦平移，速度可控
-        this.imageOffsetX = Math.sin(elapsed * speed * 0.1) * 5
-        this.imageOffsetY = Math.cos(elapsed * speed * 0.07) * 3
-        this._panId = requestAnimationFrame(animate)
+      const key = '_pan_' + layer
+      const animate = () => {
+        elapsed += 0.016
+        this.imgOffsets[layer].x = Math.sin(elapsed * speed * 0.1) * 5
+        this.imgOffsets[layer].y = Math.cos(elapsed * speed * 0.07) * 3
+        this[key] = requestAnimationFrame(animate)
       }
-      if (this._panId) cancelAnimationFrame(this._panId)
-      this._panId = requestAnimationFrame(animate)
+      this[key] = requestAnimationFrame(animate)
+    },
+    stopPanning(layer) {
+      const key = '_pan_' + layer
+      if (this[key]) { cancelAnimationFrame(this[key]); this[key] = null }
     },
 
-    // ========== 基础粒子（原版连线粒子） ==========
+    // ===== 基础粒子 =====
     initBasicParticles() {
       this.destroyBasicParticles()
       const canvas = this.$refs.particleCanvas
@@ -268,15 +241,12 @@ export default {
       this.basicCtx = canvas.getContext('2d')
       this.basicWidth = canvas.width = window.innerWidth
       this.basicHeight = canvas.height = window.innerHeight
-
-      const cfg = this.layers.basicParticles
       this.basicParticles = []
+      const cfg = this.layers.basicParticles
       for (let i = 0; i < cfg.count; i++) {
         this.basicParticles.push({
-          x: Math.random() * this.basicWidth,
-          y: Math.random() * this.basicHeight,
-          vx: (Math.random() - 0.5) * cfg.speed,
-          vy: (Math.random() - 0.5) * cfg.speed,
+          x: Math.random() * this.basicWidth, y: Math.random() * this.basicHeight,
+          vx: (Math.random() - 0.5) * cfg.speed, vy: (Math.random() - 0.5) * cfg.speed,
           radius: Math.random() * (cfg.maxRadius || 3) + 2,
         })
       }
@@ -288,17 +258,14 @@ export default {
       if (!ctx) return
       const cfg = this.layers.basicParticles
       ctx.clearRect(0, 0, this.basicWidth, this.basicHeight)
-
-      // 连线
       for (let i = 0; i < this.basicParticles.length; i++) {
         for (let j = i + 1; j < this.basicParticles.length; j++) {
           const dx = this.basicParticles[i].x - this.basicParticles[j].x
           const dy = this.basicParticles[i].y - this.basicParticles[j].y
           const dist = Math.sqrt(dx * dx + dy * dy)
           if (dist < cfg.connectDistance) {
-            const alpha = (1 - dist / cfg.connectDistance) * 0.4
             ctx.strokeStyle = cfg.color
-            ctx.globalAlpha = alpha
+            ctx.globalAlpha = (1 - dist / cfg.connectDistance) * 0.4
             ctx.beginPath()
             ctx.moveTo(this.basicParticles[i].x, this.basicParticles[i].y)
             ctx.lineTo(this.basicParticles[j].x, this.basicParticles[j].y)
@@ -307,23 +274,16 @@ export default {
           }
         }
       }
-
-      // 绘制粒子
       for (const p of this.basicParticles) {
         ctx.fillStyle = cfg.color
         ctx.beginPath()
-        if (cfg.shape === 'circle') {
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        } else {
-          ctx.fillRect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2)
-        }
+        if (cfg.shape === 'circle') ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
+        else ctx.fillRect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2)
         ctx.fill()
-        p.x += p.vx
-        p.y += p.vy
+        p.x += p.vx; p.y += p.vy
         if (p.x < 0 || p.x > this.basicWidth) p.vx *= -1
         if (p.y < 0 || p.y > this.basicHeight) p.vy *= -1
       }
-
       this.basicAnimId = requestAnimationFrame(() => this.basicFrame())
     },
 
@@ -332,15 +292,13 @@ export default {
       this.basicParticles = []
     },
 
-    // ========== 高级粒子（天体物理模拟） ==========
-    onAdvancedMouseMove(e) {
+    // ===== 高级粒子 =====
+    onAdvMouseMove(e) {
       this.advancedMouse.x = e.clientX
       this.advancedMouse.y = e.clientY
       this.advancedMouse.active = true
     },
-    onAdvancedMouseLeave() {
-      this.advancedMouse.active = false
-    },
+    onAdvMouseLeave() { this.advancedMouse.active = false },
 
     initAdvancedParticles() {
       this.destroyAdvancedParticles()
@@ -352,10 +310,8 @@ export default {
       this.advancedParticles = []
       this.advancedElapsed = 0
       this.advancedLastTime = performance.now()
-
-      // 用 document 监听鼠标（canvas 父容器 pointer-events:none 会屏蔽元素事件）
-      document.addEventListener("mousemove", this.onAdvancedMouseMove)
-      document.addEventListener("mouseleave", this.onAdvancedMouseLeave)
+      document.addEventListener('mousemove', this.onAdvMouseMove)
+      document.addEventListener('mouseleave', this.onAdvMouseLeave)
       this.advancedFrame(performance.now())
     },
 
@@ -363,161 +319,99 @@ export default {
       const ctx = this.advancedCtx
       if (!ctx) return
       const cfg = this.layers.advancedParticles
-
       const dt = Math.min((timestamp - this.advancedLastTime) / 1000, 0.1)
       this.advancedLastTime = timestamp
       this.advancedElapsed += dt
-
       ctx.clearRect(0, 0, this.advancedWidth, this.advancedHeight)
 
-      // 渐进增加粒子数
       const target = cfg.maxCount
-      const current = this.advancedParticles.length
-      const shouldSpawn = Math.floor(this.advancedElapsed * cfg.spawnRate)
-      const toAdd = Math.min(shouldSpawn, target - current)
-
-      for (let i = 0; i < toAdd; i++) {
-        this.advancedParticles.push(this.spawnAdvancedParticle(cfg))
-      }
+      const toAdd = Math.min(Math.floor(this.advancedElapsed * cfg.spawnRate), target - this.advancedParticles.length)
+      for (let i = 0; i < toAdd; i++) this.advancedParticles.push(this.spawnParticle(cfg))
       if (toAdd > 0) this.advancedElapsed = 0
 
-      // 补齐飞出页面的粒子
       for (let i = this.advancedParticles.length - 1; i >= 0; i--) {
         const p = this.advancedParticles[i]
-        if (p.x < -50 || p.x > this.advancedWidth + 50 ||
-            p.y < -50 || p.y > this.advancedHeight + 50) {
-          // 替换为新粒子（从边缘飞入）
-          this.advancedParticles[i] = this.spawnAdvancedParticle(cfg)
+        if (p.x < -50 || p.x > this.advancedWidth + 50 || p.y < -50 || p.y > this.advancedHeight + 50) {
+          this.advancedParticles[i] = this.spawnParticle(cfg)
         }
       }
 
-      // 物理更新
       const mouse = this.advancedMouse
-      const gRange = cfg.gravityRange
-      const gStrength = cfg.gravityStrength
-      const cursorMass = cfg.cursorMass
-      const pMass = cfg.particleMass
-
       for (const p of this.advancedParticles) {
-        // 鼠标引力
         if (mouse.active) {
-          const dx = mouse.x - p.x
-          const dy = mouse.y - p.y
+          const dx = mouse.x - p.x, dy = mouse.y - p.y
           const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < gRange && dist > 1) {
-            const force = (gStrength * cursorMass * pMass) / (dist * dist)
-            const fx = (dx / dist) * force
-            const fy = (dy / dist) * force
-            p.vx += fx / pMass
-            p.vy += fy / pMass
+          if (dist < cfg.gravityRange && dist > 1) {
+            const force = (cfg.gravityStrength * cfg.cursorMass * cfg.particleMass) / (dist * dist)
+            p.vx += (dx / dist) * force / cfg.particleMass
+            p.vy += (dy / dist) * force / cfg.particleMass
           }
         }
+        const curSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+        const damp = curSpeed > 3 ? 0.999 : 0.995
+        p.vx *= damp; p.vy *= damp
+        p.x += p.vx; p.y += p.vy
 
-        // 阻尼
-                const curSpeed2 = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
-        const damp = curSpeed2 > 3 ? 0.999 : 0.995  // 高速粒子阻尼更小
-        p.vx *= damp
-        p.vy *= damp
-
-        p.x += p.vx
-        p.y += p.vy
-
-        // 绘制粒子
         ctx.fillStyle = cfg.color
         ctx.globalAlpha = Math.min(1, p.life / 3)
         ctx.beginPath()
         ctx.arc(p.x, p.y, cfg.size, 0, Math.PI * 2)
         ctx.fill()
 
-        // 拖尾
-
-          // 拖尾长度随速度动态变化: 快粒子拖尾长（流星效果）
-          const curSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
-          const dynTrailLen = Math.ceil(curSpeed * 3)
-          const maxTrailLen = cfg.trailLength > 0 ? Math.max(cfg.trailLength, dynTrailLen) : dynTrailLen
-          p.trail.push({ x: p.x, y: p.y })
-          while (p.trail.length > Math.min(maxTrailLen, 30)) p.trail.shift()
-          for (let t = 0; t < p.trail.length; t++) {
-            const tp = p.trail[t]
-            const alpha = (t / p.trail.length) * 0.3
-            ctx.fillStyle = cfg.color
-            ctx.globalAlpha = alpha
-            ctx.beginPath()
-            ctx.arc(tp.x, tp.y, cfg.size * (t / p.trail.length), 0, Math.PI * 2)
-            ctx.fill()
-          }
-
-
+        const dynLen = Math.ceil(curSpeed * 3)
+        const maxLen = cfg.trailLength > 0 ? Math.max(cfg.trailLength, dynLen) : dynLen
+        p.trail.push({ x: p.x, y: p.y })
+        while (p.trail.length > Math.min(maxLen, 30)) p.trail.shift()
+        for (let t = 0; t < p.trail.length; t++) {
+          const tp = p.trail[t]
+          ctx.fillStyle = cfg.color
+          ctx.globalAlpha = (t / p.trail.length) * 0.3
+          ctx.beginPath()
+          ctx.arc(tp.x, tp.y, cfg.size * (t / p.trail.length), 0, Math.PI * 2)
+          ctx.fill()
+        }
         p.life += dt
       }
-
       ctx.globalAlpha = 1
       this.advancedAnimId = requestAnimationFrame((t) => this.advancedFrame(t))
     },
 
-    spawnAdvancedParticle(cfg) {
-      // 从页面四边随机位置生成，向内飞入
-
-      // 宽速度分布: 指数分布，少数极快（流星）、多数中等、少数很慢
-      const roll = Math.random()
-      const speed = roll < 0.15
-        ? 3 + Math.random() * 7   // 15% 流星: 速度 3~10
-        : roll < 0.45
-          ? 1 + Math.random() * 3   // 30% 快速: 速度 1~4
-          : 0.1 + Math.random() * 1.2 // 55% 慢速: 速度 0.1~1.3
+    spawnParticle(cfg) {
       const edge = Math.floor(Math.random() * 4)
       let x, y, vx, vy
+      const roll = Math.random()
+      const speed = roll < 0.15 ? 3 + Math.random() * 7
+        : roll < 0.45 ? 1 + Math.random() * 3
+        : 0.1 + Math.random() * 1.2
       const angle = Math.random() * Math.PI * 2
-
       switch (edge) {
-        case 0: // 上边
-          x = Math.random() * this.advancedWidth
-          y = -10
-          vx = Math.cos(angle) * speed
-          vy = Math.abs(Math.sin(angle)) * speed
-          break
-        case 1: // 右边
-          x = this.advancedWidth + 10
-          y = Math.random() * this.advancedHeight
-          vx = -Math.abs(Math.cos(angle)) * speed
-          vy = Math.sin(angle) * speed
-          break
-        case 2: // 下边
-          x = Math.random() * this.advancedWidth
-          y = this.advancedHeight + 10
-          vx = Math.cos(angle) * speed
-          vy = -Math.abs(Math.sin(angle)) * speed
-          break
-        default: // 左边
-          x = -10
-          y = Math.random() * this.advancedHeight
-          vx = Math.abs(Math.cos(angle)) * speed
-          vy = Math.sin(angle) * speed
+        case 0: x = Math.random() * this.advancedWidth; y = -10
+          vx = Math.cos(angle) * speed; vy = Math.abs(Math.sin(angle)) * speed; break
+        case 1: x = this.advancedWidth + 10; y = Math.random() * this.advancedHeight
+          vx = -Math.abs(Math.cos(angle)) * speed; vy = Math.sin(angle) * speed; break
+        case 2: x = Math.random() * this.advancedWidth; y = this.advancedHeight + 10
+          vx = Math.cos(angle) * speed; vy = -Math.abs(Math.sin(angle)) * speed; break
+        default: x = -10; y = Math.random() * this.advancedHeight
+          vx = Math.abs(Math.cos(angle)) * speed; vy = Math.sin(angle) * speed
       }
-
-      return { x, y, vx, vy, trail: [], life: 0, baseSpeed: speed }
+      return { x, y, vx, vy, trail: [], life: 0 }
     },
 
     destroyAdvancedParticles() {
       if (this.advancedAnimId) { cancelAnimationFrame(this.advancedAnimId); this.advancedAnimId = null }
       this.advancedParticles = []
       this.advancedElapsed = 0
-      document.removeEventListener("mousemove", this.onAdvancedMouseMove)
-      document.removeEventListener("mouseleave", this.onAdvancedMouseLeave)
+      document.removeEventListener('mousemove', this.onAdvMouseMove)
+      document.removeEventListener('mouseleave', this.onAdvMouseLeave)
     },
 
-    // ========== 通用 ==========
     handleResize() {
       if (this.layers.basicParticles.enabled) this.initBasicParticles()
       if (this.layers.advancedParticles.enabled) {
-        this.advancedWidth = this.$refs.advancedCanvas?.width || window.innerWidth
-        this.advancedHeight = this.$refs.advancedCanvas?.height || window.innerHeight
-        if (this.$refs.advancedCanvas) {
-          this.$refs.advancedCanvas.width = window.innerWidth
-          this.$refs.advancedCanvas.height = window.innerHeight
-          this.advancedWidth = window.innerWidth
-          this.advancedHeight = window.innerHeight
-        }
+        const c = this.$refs.advancedCanvas
+        if (c) { c.width = window.innerWidth; c.height = window.innerHeight }
+        this.advancedWidth = window.innerWidth
+        this.advancedHeight = window.innerHeight
       }
     },
   },
@@ -525,58 +419,60 @@ export default {
 </script>
 
 <style lang="scss">
-.particle-bg-wrapper {
+.bg-root {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   overflow: hidden;
   pointer-events: none;
-  background: #1a1a2e; // 默认暗色底
+  z-index: 0;
+}
+
+// ====== 底层：静态图层 (z-index: 0 内部) ======
+.bg-layers {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  background: #1a1a2e;
 }
 
 .bg-image {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  transition: background-position 0.5s linear;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
 }
 
 .bg-video {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   object-fit: cover;
 }
 
 .bg-gradient {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.bg-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
 }
 
 .bg-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+// ====== 顶层：粒子 (z-index: 3, 高于 #app 的 z-index:1) ======
+.bg-particles {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 3;
+}
+
+.bg-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
 }
 </style>

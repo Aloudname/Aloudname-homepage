@@ -25,7 +25,29 @@
       </template>
     </div>
 
-    <!-- ====== 图层2: 视频背景 ====== -->
+    <!-- ====== 图层2: Banner 图 ====== -->
+    <div class="editor-panel">
+      <div class="panel-title">
+        <el-checkbox v-model="layers.banner.enabled">🏠 Banner 图</el-checkbox>
+      </div>
+      <template v-if="layers.banner.enabled">
+        <el-input v-model="layers.banner.url" placeholder="Banner 背景图 URL" style="margin-bottom:10px;">
+          <el-button slot="append" @click="openAssetPicker('banner')">选择资源</el-button>
+        </el-input>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <div class="cfg-label">透明度</div>
+            <el-slider v-model="layers.banner.opacity" :min="0" :max="1" :step="0.05" show-input />
+          </el-col>
+          <el-col :span="12">
+            <div class="cfg-label">平移速度 <span style="font-size:11px;color:#c0c4cc;">(0=静止)</span></div>
+            <el-slider v-model="layers.banner.panSpeed" :min="0" :max="3" :step="0.1" show-input />
+          </el-col>
+        </el-row>
+      </template>
+    </div>
+
+    <!-- ====== 图层3: 视频 ====== -->
     <div class="editor-panel">
       <div class="panel-title">
         <el-checkbox v-model="layers.video.enabled">🎬 视频背景</el-checkbox>
@@ -39,7 +61,7 @@
       </template>
     </div>
 
-    <!-- ====== 图层3: 渐变色 ====== -->
+    <!-- ====== 图层4: 渐变 ====== -->
     <div class="editor-panel">
       <div class="panel-title">
         <el-checkbox v-model="layers.gradient.enabled">🌈 渐变色</el-checkbox>
@@ -62,7 +84,7 @@
       </template>
     </div>
 
-    <!-- ====== 图层4: 基础粒子 ====== -->
+    <!-- ====== 图层5: 基础粒子 ====== -->
     <div class="editor-panel">
       <div class="panel-title">
         <el-checkbox v-model="layers.basicParticles.enabled">✨ 基础粒子（连线网络）</el-checkbox>
@@ -100,7 +122,7 @@
       </template>
     </div>
 
-    <!-- ====== 图层5: 高级粒子（天体物理） ====== -->
+    <!-- ====== 图层6: 高级粒子 ====== -->
     <div class="editor-panel">
       <div class="panel-title">
         <el-checkbox v-model="layers.advancedParticles.enabled">🪐 高级粒子（天体物理 + 鼠标引力）</el-checkbox>
@@ -183,6 +205,7 @@ import pageConfigStore from '@/stores/pageConfig'
 
 const DEFAULT_LAYERS = {
   image: { enabled: true, url: '', opacity: 1, panSpeed: 0 },
+  banner: { enabled: false, url: '', opacity: 1, panSpeed: 0 },
   video: { enabled: false, url: '', opacity: 1 },
   gradient: { enabled: false, colors: ['#667eea', '#764ba2', ''], opacity: 1 },
   basicParticles: { enabled: false, opacity: 1, count: 80, color: '#ffffff', speed: 1.5, shape: 'circle', connectDistance: 150, maxRadius: 3 },
@@ -240,19 +263,17 @@ export default {
       }
     },
 
-    openAssetPicker(category) {
-      this.assetPickCategory = category
-      this.assetPickTarget = 'image'
-      if (category === 'video') this.assetPickTarget = 'video'
+    openAssetPicker(target) {
+      this.assetPickTarget = target // 'image' | 'banner' | 'video'
+      this.assetPickCategory = target === 'video' ? 'video' : 'image'
       this.showAssetPicker = true
     },
 
     onAssetSelected(asset) {
-      if (this.assetPickTarget === 'video') {
-        this.layers.video.url = asset.public_url
-      } else {
-        this.layers.image.url = asset.public_url
-      }
+      const t = this.assetPickTarget
+      if (t === 'video') this.layers.video.url = asset.public_url
+      else if (t === 'banner') this.layers.banner.url = asset.public_url
+      else this.layers.image.url = asset.public_url
       this.showAssetPicker = false
     },
 

@@ -142,7 +142,7 @@ export default {
 
 #app {
   position: relative;
-  z-index: 1;
+  z-index: 1; /* 底层图(0) < 内容(1) < 粒子(3) < 光标(9999) */
   overflow-x: hidden;
   background: transparent;
   font-family: Avenir, Helvetica, Arial, sans-serif;

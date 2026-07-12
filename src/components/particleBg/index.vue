@@ -62,8 +62,8 @@
 
 <script>
 
-// 默认配置
-const DEFAULTS = {
+// 默认图层配置
+const DEFAULT_LAYER = {
   image: { enabled: true, url: '', opacity: 1, panSpeed: 0 },
   video: { enabled: false, url: '', opacity: 1 },
   gradient: { enabled: false, colors: [], opacity: 1 },
@@ -81,7 +81,7 @@ const DEFAULTS = {
     enabled: false,
     opacity: 1,
     maxCount: 60,
-    spawnRate: 0.5,       // 每秒增加粒子数
+    spawnRate: 0.5,
     particleMass: 1,
     cursorMass: 50,
     gravityRange: 200,
@@ -89,28 +89,31 @@ const DEFAULTS = {
     size: 4,
     color: '#ff6b9d',
     trailLength: 5,
-    edgeSpawn: true,
   },
-  overlayOpacity: 0.4,
+}
+
+function cloneDefaults() {
+  return JSON.parse(JSON.stringify(DEFAULT_LAYER))
 }
 
 export default {
   name: 'ParticleBg',
 
+  props: {
+    config: { type: Object, default: () => ({}) },
+  },
+
   data() {
     return {
-      layers: JSON.parse(JSON.stringify(DEFAULTS)),
+      layers: cloneDefaults(),
       overlayOpacity: 0.4,
-      // 图片平移
       imageOffsetX: 0,
       imageOffsetY: 0,
-      // 基础粒子
       basicParticles: [],
       basicAnimId: null,
       basicCtx: null,
       basicWidth: 0,
       basicHeight: 0,
-      // 高级粒子
       advancedParticles: [],
       advancedAnimId: null,
       advancedCtx: null,
@@ -140,7 +143,17 @@ export default {
     },
   },
 
+  // ★ 合并为单一 watch 块（之前两个会互相覆盖）
   watch: {
+    config: {
+      immediate: true,
+      deep: true,
+      handler(val) {
+        if (val && Object.keys(val).length) {
+          this.applyConfig(val)
+        }
+      },
+    },
     'layers.image.panSpeed'() { this.initPanning() },
     'layers.basicParticles.enabled'(v) {
       if (v) this.$nextTick(() => this.initBasicParticles())
@@ -152,28 +165,12 @@ export default {
     },
   },
 
-  created() {
-    if (this.config && Object.keys(this.config).length) {
-      this.applyConfig(this.config)
-    }
-  },
-
-  watch: {
-    config: {
-      deep: true,
-      handler(val) {
-        if (val && Object.keys(val).length) {
-          this.applyConfig(val)
-        }
-      },
-    },
-  },
-
   mounted() {
     window.addEventListener('resize', this.handleResize)
-    this.initPanning()
+    // 如果初始就有启用的粒子层，立即初始化
     if (this.layers.basicParticles.enabled) this.$nextTick(() => this.initBasicParticles())
     if (this.layers.advancedParticles.enabled) this.$nextTick(() => this.initAdvancedParticles())
+    this.initPanning()
   },
 
   beforeDestroy() {
@@ -185,19 +182,20 @@ export default {
   methods: {
     // ========== 配置加载 ==========
     applyConfig(cfg) {
-      try {
-        if (!cfg || !Object.keys(cfg).length) return
+      if (!cfg || !Object.keys(cfg).length) return
 
-        // 兼容旧版 type 字段 → 新版 layers 结构
+      try {
+        // 兼容旧版: 有 type 但没有 layers（从旧版编辑器保存的数据）
         if (cfg.type && !cfg.layers) {
           this.migrateOldConfig(cfg)
         }
 
         // 新版 layers 结构
         if (cfg.layers) {
-          for (const key of Object.keys(DEFAULTS)) {
-            if (cfg.layers[key]) {
-              this.layers[key] = { ...this.layers[key], ...cfg.layers[key] }
+          const src = cfg.layers
+          for (const key of Object.keys(DEFAULT_LAYER)) {
+            if (src[key] && typeof src[key] === 'object') {
+              this.$set(this.layers, key, { ...this.layers[key], ...src[key] })
             }
           }
         }
@@ -205,43 +203,46 @@ export default {
         if (cfg.overlay_opacity !== undefined) {
           this.overlayOpacity = cfg.overlay_opacity
         }
-
-        // 重新初始化
-        this.$nextTick(() => {
-          if (this.layers.basicParticles.enabled) this.initBasicParticles()
-          else this.destroyBasicParticles()
-          if (this.layers.advancedParticles.enabled) this.initAdvancedParticles()
-          else this.destroyAdvancedParticles()
-          this.initPanning()
-        })
       } catch (err) {
-        console.warn('[ParticleBg] 加载配置失败:', err.message)
+        console.warn('[ParticleBg] applyConfig 出错:', err.message)
       }
+
+      // 根据最终配置决定初始化/销毁
+      this.$nextTick(() => {
+        if (this.layers.basicParticles.enabled) this.initBasicParticles()
+        else this.destroyBasicParticles()
+        if (this.layers.advancedParticles.enabled) this.initAdvancedParticles()
+        else this.destroyAdvancedParticles()
+        this.initPanning()
+      })
     },
 
-    // 兼容旧版单选 type 配置
+    // 兼容旧版单选 type 配置（只有一张图/视频/粒子）
     migrateOldConfig(cfg) {
-      const layers = JSON.parse(JSON.stringify(DEFAULTS))
-      // 全部先关闭
-      for (const k of Object.keys(layers)) {
-        if (typeof layers[k] === 'object' && layers[k].enabled !== undefined) {
-          layers[k].enabled = false
+      // 先全部关闭
+      for (const k of Object.keys(this.layers)) {
+        const obj = this.layers[k]
+        if (obj && typeof obj.enabled === 'boolean') {
+          this.$set(obj, 'enabled', false)
         }
       }
       if (cfg.type === 'image' && cfg.image_url) {
-        layers.image.enabled = true
-        layers.image.url = cfg.image_url
+        this.$set(this.layers.image, 'enabled', true)
+        this.$set(this.layers.image, 'url', cfg.image_url)
       } else if (cfg.type === 'video' && cfg.video_url) {
-        layers.video.enabled = true
-        layers.video.url = cfg.video_url
-      } else if (cfg.type === 'particles' && cfg.particle_config) {
-        layers.basicParticles.enabled = true
-        Object.assign(layers.basicParticles, cfg.particle_config)
+        this.$set(this.layers.video, 'enabled', true)
+        this.$set(this.layers.video, 'url', cfg.video_url)
+      } else if (cfg.type === 'particles') {
+        this.$set(this.layers.basicParticles, 'enabled', true)
+        if (cfg.particle_config) {
+          Object.keys(cfg.particle_config).forEach(k => {
+            this.$set(this.layers.basicParticles, k, cfg.particle_config[k])
+          })
+        }
       } else if (cfg.type === 'gradient' && cfg.gradient_colors) {
-        layers.gradient.enabled = true
-        layers.gradient.colors = cfg.gradient_colors
+        this.$set(this.layers.gradient, 'enabled', true)
+        this.$set(this.layers.gradient, 'colors', cfg.gradient_colors.filter(Boolean))
       }
-      this.layers = layers
     },
 
     // ========== 图片平移 ==========

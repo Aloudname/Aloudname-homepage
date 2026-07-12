@@ -1,13 +1,3 @@
-<!--
- * @Author: chaichai chaichai@cute.com
- * @Date: 2022-09-26 08:42:49
- * @LastEditors: chaichai chaichai@cute.com
- * @LastEditTime: 2022-10-09 10:39:13
- * @FilePath: \blog3.0\src\components\bannerView\index.vue
- * @Description: 
- * 
- * Copyright (c) 2022 by CQUCC-4-433, All Rights Reserved. 
--->
 <template>
   <div>
     <div
@@ -16,7 +6,8 @@
     >
       <div class="coverBox">
         <div class="navBox">
-          <div class="topTitle">chaichai.top</div>
+          <!-- 网站标题 — 支持动态 props 或默认值 -->
+          <div class="topTitle">{{ siteTitle }}</div>
           <el-menu
             class="el-menu-demo"
             mode="horizontal"
@@ -27,20 +18,29 @@
             text-color="#fff"
             menu-trigger="click"
           >
-            <el-menu-item index="about">首页</el-menu-item>
-            <el-menu-item index="blog">博客</el-menu-item>
-            <el-menu-item index="back">后台</el-menu-item>
-            <el-submenu index="2">
+            <!-- 导航项 — 优先使用 props 传入的动态数据 -->
+            <el-menu-item
+              v-for="item in navItems"
+              :key="item.path"
+              :index="item.path"
+            >{{ item.label }}</el-menu-item>
+
+            <!-- 友链子菜单 -->
+            <el-submenu v-if="friendLinks.length" index="friends">
               <template slot="title">友链</template>
-              <el-menu-item index="2-1" class="friendList"
-                ><img src="@/assets/baimeng.png" alt="" class="friendIco" /><a
-                  href="https://marrydream.top/"
-                  style="color: #fff"
-                  >百梦</a
-                ></el-menu-item
+              <el-menu-item
+                v-for="(link, idx) in friendLinks"
+                :key="idx"
+                :index="'friend-' + idx"
+                class="friendList"
               >
-              <el-menu-item index="2-2" class="friendList">
-                <a href="#" style="color: #fff">虚位以待~</a>
+                <img
+                  v-if="link.icon"
+                  :src="link.icon"
+                  alt=""
+                  class="friendIco"
+                />
+                <a :href="link.url" style="color: #fff" target="_blank">{{ link.name }}</a>
               </el-menu-item>
             </el-submenu>
           </el-menu>
@@ -53,27 +53,55 @@
 </template>
 
 <script>
+import pageConfigStore from '@/stores/pageConfig'
+
 export default {
-  name:'bannerView',
+  name: 'bannerView',
+
   props: {
-    imgUrl: {
-      required: true,
-    },
-    titleName: {
-      required: true,
-    },
+    imgUrl: { required: true },
+    titleName: { required: true },
   },
+
   data() {
     return {
-      activeIndex: "1",
-    };
+      siteTitle: 'chaichai.top',
+      navItems: [
+        { label: '首页', path: 'about' },
+        { label: '博客', path: 'blog' },
+      ],
+      friendLinks: [
+        { name: '百梦', url: 'https://marrydream.top/', icon: '' },
+        { name: '虚位以待~', url: '#', icon: '' },
+      ],
+    }
   },
+
+  async created() {
+    try {
+      await pageConfigStore.loadAll(['banner'])
+      const banner = pageConfigStore.getSection('banner')
+      if (banner.title) this.siteTitle = banner.title
+      if (banner.nav_items?.length) this.navItems = banner.nav_items
+      if (banner.friend_links?.length) this.friendLinks = banner.friend_links
+    } catch (err) {
+      console.warn('[bannerView] 加载云端配置失败，使用默认值:', err.message)
+    }
+  },
+
   methods: {
     handleSelect(key, keyPath) {
-      console.log(key, keyPath);
+      // 友链点击处理
+      if (key.startsWith('friend-')) {
+        const idx = parseInt(key.replace('friend-', ''))
+        const link = this.friendLinks[idx]
+        if (link?.url && link.url !== '#') {
+          window.open(link.url, '_blank')
+        }
+      }
     },
   },
-};
+}
 </script>
 
 <style lang="scss">
@@ -108,7 +136,6 @@ export default {
       background-color: rgb(0, 0, 0, 0) !important;
       border: 0px;
     }
-
     .el-menu-item {
       font-size: 18px;
       font-weight: 600;
@@ -137,6 +164,7 @@ export default {
   }
 }
 </style>
+
 <style>
 .friendIco {
   display: inline-block;

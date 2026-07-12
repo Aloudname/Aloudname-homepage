@@ -1,47 +1,56 @@
-<!--
- * @Author: chaichai chaichai@cute.com
- * @Date: 2022-09-26 08:29:56
- * @LastEditors: chaichai chaichai@cute.com
- * @LastEditTime: 2022-11-09 10:38:10
- * @FilePath: \blog3.0\src\views\HomeView\HomeView.vue
- * @Description: 
- * 
- * Copyright (c) 2022 by CQUCC-4-433, All Rights Reserved. 
--->
 <template>
   <div class="home">
     <div class="coverBox">
       <div class="centerBox">
-        <!-- 头像 -->
+        <!-- 头像 — 从 page_config 加载 -->
         <el-avatar
-          src="https://chaichaiimage.oss-cn-hangzhou.aliyuncs.com/blogimg/0d1b2cad168244918d2ee927bb664eb5.jpeg"
+          :src="avatarUrl"
           :size="150"
           class="picT"
         ></el-avatar>
-        <!-- 作者姓名 -->
-        <div class="ahtuorName">柴柴</div>
+        <!-- 作者姓名 — 从 page_config 加载 -->
+        <div class="ahtuorName">{{ authorName }}</div>
         <el-divider class="divider"></el-divider>
-        <!-- 内容 -->
+        <!-- 打字机文本 — 从 page_config 加载 -->
         <div class="title" v-for="(v, k) in content" :key="k">
           <typewriter class="str" :str="v"></typewriter>
         </div>
-        <!-- 引导按钮 -->
+        <!-- 导航按钮 -->
         <div class="btnBox">
-          <el-button round @click="clickHome" class="btnStyle">首页</el-button>
-          <el-button round class="btnStyle">博客</el-button>
-          <el-button round class="btnStyle">后台</el-button>
+          <el-button round @click="$router.push('/about')" class="btnStyle">首页</el-button>
+          <el-button round @click="$router.push('/blog')" class="btnStyle">博客</el-button>
+          <el-button round @click="$router.push('/admin')" class="btnStyle">后台</el-button>
         </div>
-        <!-- 链接图标模块 -->
+        <!-- 社交链接 — 从 page_config 动态渲染 -->
         <div class="continueBox">
-          <img src="@/assets/QQ.png" alt="" class="logoimg" @click="goQQ" />
-          <img
-            src="@/assets/github.png"
-            alt=""
-            class="logoimg"
-            @click="dialogVisible = true"
-          />
+          <template v-for="(link, idx) in socialLinks">
+            <img
+              v-if="link.platform === 'QQ'"
+              :key="'qq'"
+              src="@/assets/QQ.png"
+              alt="QQ"
+              class="logoimg"
+              @click="handleSocialClick(link)"
+            />
+            <img
+              v-else-if="link.platform === 'GitHub'"
+              :key="'gh'"
+              src="@/assets/github.png"
+              alt="GitHub"
+              class="logoimg"
+              @click="handleSocialClick(link)"
+            />
+            <img
+              v-else
+              :key="idx"
+              :src="link.icon || ''"
+              :alt="link.platform"
+              class="logoimg"
+              @click="handleSocialClick(link)"
+            />
+          </template>
         </div>
-        <!-- 弹窗组件 -->
+        <!-- 弹窗 -->
         <Popup
           :dialogTitle="dialogTitle"
           :visible.sync="dialogVisible"
@@ -49,89 +58,101 @@
           @resetPopupData="resetPopupData"
           @submitPopupData="submitPopupData"
           @handleClose="handleClose"
-          :popupWidth="'250px'"
+          :popupWidth="'320px'"
         >
-          <!-- 弹窗内容 -->
           <div class="go433Box">
-            <span>CQUCC-4-433👉 </span
-            ><a href="https://github.com/4-433" target="_blank">点击前往</a
-            ><br />
-            <span>Chaichai👉 </span
-            ><a href="https://github.com/bbxx123" target="_blank">点击前往</a><br />
-            <img src="@/assets/fenhuli.gif" alt="" class="go433Img" />
+            <div v-if="dialogContent" v-html="dialogContent"></div>
           </div>
         </Popup>
       </div>
-      <!-- 页脚 -->
+      <!-- 页脚 — 从 page_config 加载 -->
       <div class="footerBox">
-        &copy; 2022 Chaichai 版权所有<br />
-        <a href="https://beian.miit.gov.cn/" style="color: #fff" target="_blank">滇ICP备2022000365号</a>
+        {{ copyrightText }}<br />
+        <a v-if="icpNumber" href="https://beian.miit.gov.cn/" style="color: #fff" target="_blank">{{ icpNumber }}</a>
       </div>
     </div>
   </div>
 </template>
 
-
 <script>
-import Popup from "@/components/dialogView/index.vue"; //弹窗组件
-import typewriter from "./components/typewriter.vue";
-import "./css/HomeView.scss";
+import Popup from "@/components/dialogView/index.vue"
+import typewriter from "./components/typewriter.vue"
+import pageConfigStore from '@/stores/pageConfig'
+import "./css/HomeView.scss"
 
 export default {
   name: "HomeView",
   components: { Popup, typewriter },
+
   data() {
     return {
       content: [],
-      str: "我是文字",
-      //文章内容
-      words: [
+      avatarUrl: "https://chaichaiimage.oss-cn-hangzhou.aliyuncs.com/blogimg/0d1b2cad168244918d2ee927bb664eb5.jpeg",
+      authorName: "柴柴",
+      typewriterTexts: [
         "嗨 欢迎来到chaichai.top",
-        "励志成为优秀且花里胡哨的程序员，并在努力奋斗	",
+        "励志成为优秀且花里胡哨的程序员，并在努力奋斗",
         "CQUCC-4-433正在找寻志同道合的小伙伴，欢迎前端、后端、UI加入我们！",
       ],
-      dialogVisible: false, // 弹框的出现与否
-      dialogTitle: "GitHub", //弹窗标题
-    };
+      socialLinks: [
+        { platform: 'QQ', action: 'dialog', value: '2787922490' },
+        { platform: 'GitHub', action: 'link', value: 'https://github.com/bbxx123' },
+      ],
+      copyrightText: "© 2024 版权所有",
+      icpNumber: "",
+      dialogVisible: false,
+      dialogTitle: "GitHub",
+      dialogContent: "",
+    }
   },
+
+  async created() {
+    try {
+      await pageConfigStore.loadAll(['home', 'footer'])
+      const home = pageConfigStore.getSection('home')
+      const footer = pageConfigStore.getSection('footer')
+
+      if (home.avatar_url) this.avatarUrl = home.avatar_url
+      if (home.author_name) this.authorName = home.author_name
+      if (home.typewriter_texts?.length) this.typewriterTexts = home.typewriter_texts
+      if (home.social_links?.length) this.socialLinks = home.social_links
+      if (footer.copyright_text) this.copyrightText = footer.copyright_text
+      if (footer.icp_number) this.icpNumber = footer.icp_number
+    } catch (err) {
+      console.warn('[HomeView] 加载云端配置失败，使用默认值:', err.message)
+    }
+  },
+
   mounted() {
-    this.setTime();
+    this.setTime()
   },
+
   methods: {
     setTime() {
-      var arr = this.words;
-      var that = this;
+      var arr = this.typewriterTexts
+      var that = this
       arr.forEach(function (v, k) {
         setTimeout(function () {
-          that.content.push(v);
-        }, k * 2500);
-      });
+          that.content.push(v)
+        }, k * 2500)
+      })
     },
-    updateVisible(val) {
-      this.dialogVisible = val;
+    handleSocialClick(link) {
+      if (link.action === 'dialog') {
+        this.dialogTitle = link.platform
+        this.dialogContent = link.value || ''
+        this.dialogVisible = true
+      } else if (link.action === 'link') {
+        window.open(link.value, '_blank')
+      } else if (link.action === 'copy') {
+        navigator.clipboard?.writeText(link.value || '')
+        this.$message?.success('已复制到剪贴板') || alert('已复制: ' + link.value)
+      }
     },
-    // 点击取消的事件
-    resetPopupData() {
-      //  这里可重置数据
-      this.dialogVisible = false;
-    },
-    // 点击确定的按钮
-    async submitPopupData() {
-      this.dialogVisible = false;
-    },
-    // 关闭弹框（头部的X）
-    handleClose() {
-      this.dialogVisible = false;
-    },
-    clickHome() {
-      this.$router.push("/about");
-    },
-    goQQ() {
-      //qq弹窗内容
-      this.$alert("柴柴：2787922490(はじかの)", "QQ", {
-        confirmButtonText: "确定",
-      });
-    },
+    updateVisible(val) { this.dialogVisible = val },
+    resetPopupData() { this.dialogVisible = false },
+    async submitPopupData() { this.dialogVisible = false },
+    handleClose() { this.dialogVisible = false },
   },
-};
+}
 </script>

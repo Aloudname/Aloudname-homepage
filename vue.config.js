@@ -1,6 +1,6 @@
 module.exports = {
-  // 自定义域名部署使用根路径
-  publicPath: '/',
+  // 使用相对路径，兼容 GitHub Pages 项目站点和自定义域名
+  publicPath: './',
   outputDir: 'dist',
 
   chainWebpack: config => {

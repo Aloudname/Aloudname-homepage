@@ -143,8 +143,8 @@ export default {
       avatarUrl: "",
       authorName: "Aloudname",
       typewriterTexts: [
-        "嗨 欢迎来到我的个人主页",
-        "热爱技术，乐于分享",
+        "你好呀，",
+        "我是 Aloudname...",
       ],
       socialLinks: [
         { platform: 'GitHub', action: 'link', value: 'https://github.com/Aloudname' },

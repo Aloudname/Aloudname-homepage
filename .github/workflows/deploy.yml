@@ -37,6 +37,7 @@ jobs:
           VUE_APP_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npm run build
 
+      # important
       - name: Create CNAME
         run: echo 'Aloudname.github.io' > dist/CNAME
 

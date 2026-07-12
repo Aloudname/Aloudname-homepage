@@ -8,46 +8,22 @@
 -->
 <template>
   <div style="display:contents">
-    <!-- ====== 底层: 静态图层 ====== -->
+    <!-- ====== 底层: 静态图层 (z:0) ====== -->
     <div class="bg-layers">
-      <!-- 背景图 -->
-      <div
-        v-if="layers.image.enabled && layers.image.url"
-        class="bg-image"
-        :style="imageStyle('image')"
-      ></div>
-
-      <!-- Banner 图 -->
-      <div
-        v-if="layers.banner.enabled && layers.banner.url"
-        class="bg-image"
-        :style="imageStyle('banner')"
-      ></div>
-
-      <!-- 视频 -->
-      <video
-        v-if="layers.video.enabled && layers.video.url"
-        class="bg-video"
-        :src="layers.video.url"
-        autoplay loop muted playsinline
-        :style="{ opacity: layers.video.opacity }"
-      ></video>
-
-      <!-- 渐变 -->
-      <div
-        v-if="layers.gradient.enabled && layers.gradient.colors.length"
-        class="bg-gradient"
-        :style="{ background: gradientStyle, opacity: layers.gradient.opacity }"
-      ></div>
-
-      <!-- 遮罩 -->
-      <div
-        class="bg-overlay"
-        :style="{ background: `rgba(0,0,0,${overlayOpacity})` }"
-      ></div>
+      <div v-if="layers.image.enabled && layers.image.url" class="bg-image" :style="imageStyle('image')"></div>
+      <div v-if="layers.banner.enabled && layers.banner.url" class="bg-image" :style="imageStyle('banner')"></div>
+      <video v-if="layers.video.enabled && layers.video.url" class="bg-video" :src="layers.video.url"
+        autoplay loop muted playsinline :style="{ opacity: layers.video.opacity }"></video>
     </div>
 
-    <!-- ====== 顶层: 粒子 ====== -->
+    <!-- ====== 中层: 渐变+遮罩 (z:2, 覆盖页面内容) ====== -->
+    <div class="bg-overlays">
+      <div v-if="layers.gradient.enabled && layers.gradient.colors.length"
+        class="bg-gradient" :style="{ background: gradientStyle, opacity: layers.gradient.opacity }"></div>
+      <div class="bg-overlay" :style="{ background: `rgba(0,0,0,${overlayOpacity})` }"></div>
+    </div>
+
+    <!-- ====== 顶层: 粒子 (z:3) ====== -->
     <div class="bg-particles">
       <canvas
         ref="particleCanvas"
@@ -449,6 +425,15 @@ export default {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
+}
+
+// ====== 中层：渐变+遮罩 (fixed, z:2, 覆盖 #app 内容) ======
+.bg-overlays {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .bg-overlay {

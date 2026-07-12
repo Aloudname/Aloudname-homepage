@@ -1,0 +1,34 @@
+// SCSS 全局变量
+// 与模板保持一致的设计变量
+
+// 主题色
+$primary-color: #42b983;
+$text-color: #2c3e50;
+$text-light: #fff;
+
+// 遮罩
+$overlay-bg: rgba(0, 0, 0, 0.4);
+
+// 导航
+$nav-height: 60px;
+
+// 字体
+$font-family-base: Avenir, Helvetica, Arial, sans-serif;
+
+// Z-index 层级
+$z-background: 0;
+$z-content: 1;
+$z-cursor: 9999;
+$z-music-player: 1000;
+$z-modal: 2000;
+$z-toast: 3000;
+
+// 断点
+$screen-sm: 768px;
+$screen-md: 992px;
+$screen-lg: 1200px;
+
+// 动画
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;

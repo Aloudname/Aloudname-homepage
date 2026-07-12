@@ -1,0 +1,37 @@
+{
+  "name": "blog3.0",
+  "version": "0.2.0",
+  "description": "二次元个人博客模板",
+  "author": "柴柴",
+  "private": false,
+  "scripts": {
+    "chaichai": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.78.0",
+    "amfe-flexible": "^2.2.1",
+    "animate.css": "^4.1.1",
+    "core-js": "^3.8.3",
+    "element-tiptap": "^1.27.1",
+    "element-ui": "^2.15.10",
+    "postcss-pxtorem": "^6.0.0",
+    "save": "^2.9.0",
+    "vue": "^2.6.14",
+    "vue-concise-slider": "^4.2.5",
+    "vue-markdown": "^2.2.4",
+    "vue-router": "^3.5.1"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-router": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "github-markdown-css": "^5.1.0",
+    "highlight.js": "^11.6.0",
+    "sass": "^1.32.7",
+    "sass-loader": "^12.0.0",
+    "vue-loader": "^17.0.0",
+    "vue-markdown-loader": "^2.5.0",
+    "vue-template-compiler": "^2.7.10"
+  }
+}

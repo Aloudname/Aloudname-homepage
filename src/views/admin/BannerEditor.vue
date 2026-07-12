@@ -8,7 +8,7 @@
     <!-- 网站标题 -->
     <div class="editor-panel">
       <div class="panel-title">网站标题 (TopBar)</div>
-      <el-input v-model="siteTitle" placeholder="如: chaichai.top" />
+      <el-input v-model="siteTitle" placeholder="输入网站标题" />
     </div>
 
     <!-- Banner 背景图 -->
@@ -117,7 +117,7 @@ export default {
     return {
       loading: false,
       saving: false,
-      siteTitle: 'chaichai.top',
+      siteTitle: '',
       bannerImages: [],
       navItems: [],
       friendLinks: [],

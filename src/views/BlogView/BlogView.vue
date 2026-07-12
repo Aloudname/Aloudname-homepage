@@ -69,7 +69,7 @@ export default {
 
   data() {
     return {
-      bannerImg: "http://chaichaiimage.oss-cn-hangzhou.aliyuncs.com/blog3.0/bg17.jpg",
+      bannerImg: "",
       posts: [],
       loading: true,
     }

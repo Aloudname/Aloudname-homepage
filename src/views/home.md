@@ -1,26 +1,21 @@
-# **关于柴柴**
+# **关于我**
 
-![7201279F43E8AAE80C675ECDCF503142](http://chaichaiimage.oss-cn-hangzhou.aliyuncs.com/blog3.0/bg15.jpg)
+![cover](https://wgjgdnuofimjlhgwwicy.supabase.co/storage/v1/object/public/public-assets/images/cover.jpg)
 
-### 人员：柴柴
+### 欢迎来到我的个人主页
 
-### 标签： 中二 / 花里胡哨
+### 标签：技术 / 开源 / 创造
 
-### 坐标：神奈川
+### 坐标：地球
 
-### 爱好：花里胡哨的各种开发
+### 爱好：编程、设计、探索新事物
 
-### GitTeam：CQUCC-4-433(广告：我们的组织正在寻找志同道合的小伙伴！欢迎前端、后端、UI到碗里来！)
+> 这是一个基于 Vue 2 + Supabase 构建的个人主页。
+> 通过后台编辑器可以随时修改这些内容。
 
 ```
-本开源项目由以下人员鼎力支持：
-后勤保障：百梦
-UI设计：屁屁
-框架建设：柴柴
+感谢以下开源项目：
+Vue.js / Element UI / Supabase
 ```
 
 **开源协议 MIT**
-
-<!-- ```javascript
-const bbxx = 1
-``` -->

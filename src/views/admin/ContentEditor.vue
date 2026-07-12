@@ -20,7 +20,7 @@
     <!-- 作者名 -->
     <div class="editor-panel">
       <div class="panel-title">作者名称</div>
-      <el-input v-model="authorName" placeholder="如: 柴柴" />
+      <el-input v-model="authorName" placeholder="输入你的名字" />
     </div>
 
     <!-- 打字机文本 -->

@@ -11,17 +11,10 @@
 <template>
   <div>
     <div class="footerBox">
-      &copy; 2022 Chaichai 版权所有<br />
-
-      <!-- 不蒜子年久失修，此功能已经无法正常运行（数据不显示或数据错误），目前暂无解决办法，需要此功能的同学自行编写后端~ 访问首页=>次数++ 即可 -->
-      <!-- 浏览量：<span id="busuanzi_value_site_pv">114514</span>👀 | 访客数：<span -->
-      <!-- id="busuanzi_value_site_uv" -->
-      <!-- >233333</span -->
-      <!-- >👦<br /> -->
-      网站苟活 {{ day }}天 {{ h }}小时 {{ min }}分钟 {{ sec }}秒<br />
-      power by 🧡Chaichai🧡<br />
-      开源协议 MIT License <br />
-      <a href="https://beian.miit.gov.cn/" style="color: #fff" target="_blank">滇ICP备2022000365号</a>
+      © 2024 版权所有<br />
+      已运行 {{ day }}天 {{ h }}小时 {{ min }}分钟 {{ sec }}秒<br />
+      Powered by Vue & Supabase<br />
+      开源协议 MIT License
     </div>
   </div>
 </template>
@@ -48,9 +41,9 @@ export default {
   },
   methods: {
     getNowFormatDate() {
-      var t1 = new Date("2021/8/25 4:30:59");
+      var t1 = new Date("2024/1/1 0:00:00");
       var data = new Date(); //获取当前时间
-      var times = t1.getTime() - data.getTime(); //时间差的毫秒数
+      var times = data.getTime() - t1.getTime(); //时间差的毫秒数
       var days = parseInt(times / (24 * 1000 * 3600)); //计算相差的天数
       var leave = times % (24 * 3600 * 1000); //计算天数后剩余的毫秒数
       var h = parseInt(leave / (3600 * 1000)); //计算小时数

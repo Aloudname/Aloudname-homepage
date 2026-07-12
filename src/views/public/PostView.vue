@@ -97,7 +97,7 @@ export default {
       // 加载页面配置获取 banner 图片
       await pageConfigStore.loadAll(['about'])
       this.bannerImage = pageConfigStore.getValue('about', 'banner_image',
-        'https://chaichaiimage.oss-cn-hangzhou.aliyuncs.com/blog3.0/bg16.jpg')
+        '')
 
       // 加载文章
       this.post = await getPostBySlug(slug)

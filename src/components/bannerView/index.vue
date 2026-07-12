@@ -65,15 +65,12 @@ export default {
 
   data() {
     return {
-      siteTitle: 'chaichai.top',
+      siteTitle: '',
       navItems: [
         { label: '首页', path: 'about' },
         { label: '博客', path: 'blog' },
       ],
-      friendLinks: [
-        { name: '百梦', url: 'https://marrydream.top/', icon: '' },
-        { name: '虚位以待~', url: '#', icon: '' },
-      ],
+      friendLinks: [],
     }
   },
 

@@ -133,22 +133,21 @@ export default {
     return {
       // Banner 数据
       bannerBgUrl: '',
-      siteTitle: 'chaichai.top',
+      siteTitle: '',
       navItems: [
         { label: '首页', path: 'about' },
         { label: '博客', path: 'blog' },
       ],
       // 个人数据
       content: [],
-      avatarUrl: "https://chaichaiimage.oss-cn-hangzhou.aliyuncs.com/blogimg/0d1b2cad168244918d2ee927bb664eb5.jpeg",
-      authorName: "柴柴",
+      avatarUrl: "",
+      authorName: "Aloudname",
       typewriterTexts: [
-        "嗨 欢迎来到 chaichai.top",
-        "励志成为优秀且花里胡哨的程序员",
+        "嗨 欢迎来到我的个人主页",
+        "热爱技术，乐于分享",
       ],
       socialLinks: [
-        { platform: 'QQ', action: 'dialog', value: '2787922490' },
-        { platform: 'GitHub', action: 'link', value: 'https://github.com/bbxx123' },
+        { platform: 'GitHub', action: 'link', value: 'https://github.com/Aloudname' },
       ],
       // 文章
       recentPosts: [],

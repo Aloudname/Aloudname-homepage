@@ -397,7 +397,7 @@ export default {
 <style lang="scss">
 // display:contents 根元素不创建盒模型，下面两个子元素各自独立 fixed，z-index 作用到视口级
 
-// ====== 底层：静态图层 (fixed, z:0, 在 #app 下方) ======
+// ====== 底层：静态图层 (fixed, z:0) ======
 .bg-layers {
   position: fixed;
   top: 0; left: 0;
@@ -427,13 +427,13 @@ export default {
   width: 100%; height: 100%;
 }
 
-// ====== 中层：渐变+遮罩 (fixed, z:2, 覆盖 #app 内容) ======
+// ====== 中层：渐变+遮罩 (fixed, z:1) ======
 .bg-overlays {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
 }
 
 .bg-overlay {
@@ -442,13 +442,13 @@ export default {
   width: 100%; height: 100%;
 }
 
-// ====== 顶层：粒子 (fixed, z:3, 覆盖 #app 的 z:1) ======
+// ====== 顶层：粒子 (fixed, z:2, 在渐变之上但内容之下) ======
 .bg-particles {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   pointer-events: none;
-  z-index: 3;
+  z-index: 2;
 }
 
 .bg-canvas {

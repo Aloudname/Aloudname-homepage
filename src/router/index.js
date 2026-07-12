@@ -137,6 +137,8 @@ const catchAllRoute = {
 // ========== 构建 Router ==========
 const router = new VueRouter({
   mode: 'history',
+  // GitHub Pages 项目站点路径。换成自定义域名后改回 '/'
+  base: '/Aloudname-homepage/',
   routes: [
     ...publicRoutes,
     adminRoutes,

@@ -1,6 +1,6 @@
 module.exports = {
-  // 使用相对路径，兼容 GitHub Pages 项目站点和自定义域名
-  publicPath: './',
+  // GitHub Pages 项目站点路径。换成自定义域名后改回 '/'
+  publicPath: '/Aloudname-homepage/',
   outputDir: 'dist',
 
   chainWebpack: config => {

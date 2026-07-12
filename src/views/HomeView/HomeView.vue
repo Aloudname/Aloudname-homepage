@@ -77,7 +77,7 @@
 <script>
 import Popup from "@/components/dialogView/index.vue"
 import typewriter from "./components/typewriter.vue"
-import pageConfigStore from '@/stores/pageConfig'
+import { getSectionConfig } from '@/services/pageConfigService'
 import "./css/HomeView.scss"
 
 export default {
@@ -108,9 +108,11 @@ export default {
 
   async created() {
     try {
-      await pageConfigStore.loadAll(['home', 'footer'])
-      const home = pageConfigStore.getSection('home')
-      const footer = pageConfigStore.getSection('footer')
+      // 直接从 Supabase 读取，不经过 store 缓存层（与 ContentEditor 完全对称）
+      const [home, footer] = await Promise.all([
+        getSectionConfig('home'),
+        getSectionConfig('footer'),
+      ])
 
       if (home.avatar_url) this.avatarUrl = home.avatar_url
       if (home.author_name) this.authorName = home.author_name

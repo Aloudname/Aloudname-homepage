@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import pageConfigStore from '@/stores/pageConfig'
+import { getSectionConfig } from '@/services/pageConfigService'
 
 export default {
   name: 'bannerView',
@@ -79,8 +79,8 @@ export default {
 
   async created() {
     try {
-      await pageConfigStore.loadAll(['banner'])
-      const banner = pageConfigStore.getSection('banner')
+      // 直接从 Supabase 读取，不经过 store（与 BannerEditor 完全对称）
+      const banner = await getSectionConfig('banner')
       if (banner.title) this.siteTitle = banner.title
       if (banner.nav_items?.length) this.navItems = banner.nav_items
       if (banner.friend_links?.length) this.friendLinks = banner.friend_links

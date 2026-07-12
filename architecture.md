@@ -2224,3 +2224,28 @@ supabase.channel('name')
 > **文档维护**: 本文档随项目迭代持续更新。所有重大架构变更需同步更新此文档。
 >
 > **最后更新**: 2026-07-12
+
+---
+
+## 附录B: pages 自定义页面表（后增）
+
+```sql
+CREATE TABLE pages (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title         TEXT NOT NULL,
+  slug          TEXT UNIQUE NOT NULL,
+  content       TEXT DEFAULT '',
+  is_published  BOOLEAN DEFAULT false,
+  sort_order    INTEGER DEFAULT 0,
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  updated_at    TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_pages_slug ON pages(slug);
+CREATE INDEX idx_pages_published ON pages(is_published);
+
+ALTER TABLE pages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "public_read_published" ON pages FOR SELECT USING (is_published = true);
+CREATE POLICY "authenticated_all" ON pages FOR ALL USING (auth.role() = 'authenticated');
+```

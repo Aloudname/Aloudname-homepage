@@ -53,6 +53,11 @@
           <span>📄 文章管理</span>
         </el-menu-item>
 
+        <el-menu-item index="/admin/pages">
+          <i class="el-icon-document-copy"></i>
+          <span>📑 页面管理</span>
+        </el-menu-item>
+
         <el-menu-item index="/admin/assets">
           <i class="el-icon-folder-opened"></i>
           <span>🖼️ 资源管理</span>

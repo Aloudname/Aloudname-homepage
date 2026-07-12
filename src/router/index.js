@@ -113,6 +113,24 @@ const adminRoutes = {
       meta: { title: '资源管理 | 管理后台' }
     },
     {
+      path: 'pages',
+      name: 'PagesManager',
+      component: () => import('../views/admin/PagesManager.vue'),
+      meta: { title: '页面管理 | 管理后台' }
+    },
+    {
+      path: 'pages/new',
+      name: 'NewPage',
+      component: () => import('../views/admin/PageEditor.vue'),
+      meta: { title: '新建页面 | 管理后台' }
+    },
+    {
+      path: 'pages/:id/edit',
+      name: 'EditPage',
+      component: () => import('../views/admin/PageEditor.vue'),
+      meta: { title: '编辑页面 | 管理后台' }
+    },
+    {
       path: 'settings',
       name: 'Settings',
       component: () => import('../views/admin/SettingsView.vue'),
@@ -126,6 +144,14 @@ const loginRoute = {
   name: 'Login',
   component: () => import('../views/admin/LoginView.vue'),
   meta: { title: '管理员登录' }
+}
+
+// 动态自定义页面（在 admin 之后、catch-all 之前，不会覆盖静态路由或 /admin）
+const dynamicPageRoute = {
+  path: '/:slug',
+  name: 'dynamicPage',
+  component: () => import('../views/public/DynamicPage.vue'),
+  meta: { title: '' }
 }
 
 const catchAllRoute = {
@@ -143,7 +169,8 @@ const router = new VueRouter({
     ...publicRoutes,
     adminRoutes,
     loginRoute,
-    catchAllRoute,
+    dynamicPageRoute,  // /:slug — 匹配所有未被上面路由拦截的路径
+    catchAllRoute,     // * → /404
   ]
 })
 

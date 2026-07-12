@@ -30,9 +30,9 @@
 
           <!-- 导航按钮 -->
           <div class="hero-btns">
-            <el-button round @click="goPage('about')" class="hero-btn">📖 关于我</el-button>
-            <el-button round @click="goPage('blog')" class="hero-btn">📝 博客</el-button>
-            <el-button round @click="scrollToPosts" class="hero-btn">🔥 最新文章</el-button>
+            <el-button round @click="goPage('about')" class="hero-btn">关于我</el-button>
+            <el-button round @click="goPage('blog')" class="hero-btn">博客</el-button>
+            <el-button round @click="scrollToPosts" class="hero-btn">最新文章</el-button>
           </div>
 
           <!-- 社交图标 -->
@@ -56,8 +56,8 @@
     <!-- ====== 区块2: 最新博客文章列表 ====== -->
     <div class="posts-section" ref="postsSection">
       <div class="section-header">
-        <h2>📝 最新文章</h2>
-        <el-button type="text" @click="goPage('blog')">查看全部 →</el-button>
+        <h2>最新文章</h2>
+        <el-button type="text" @click="goPage('blog')">查看全部 -></el-button>
       </div>
 
       <div v-if="loadingPosts" class="loading-state">
@@ -79,7 +79,7 @@
             <h3 class="post-card-title">{{ post.title }}</h3>
             <p class="post-card-excerpt" v-if="post.excerpt">{{ post.excerpt }}</p>
             <div class="post-card-meta">
-              <span>📅 {{ formatDate(post.created_at) }}</span>
+              <span>{{ formatDate(post.created_at) }}</span>
               <el-tag
                 v-for="tag in (post.tags || []).slice(0, 3)"
                 :key="tag"
@@ -91,7 +91,7 @@
       </div>
 
       <div v-else class="empty-state">
-        <p>还没有文章，快去后台写一篇吧 ✍️</p>
+        <p>什么都不知道哦</p>
       </div>
     </div>
 
@@ -141,7 +141,7 @@ export default {
       // 个人数据
       content: [],
       avatarUrl: "",
-      authorName: "Aloudname",
+      authorName: "",
       typewriterTexts: [
         "你好呀，",
         "我是 Aloudname...",
@@ -153,7 +153,7 @@ export default {
       recentPosts: [],
       loadingPosts: true,
       // 页脚
-      copyrightText: "© 2024 版权所有",
+      copyrightText: "©bean-chai 2024 版权所有",
       icpNumber: "",
       // 弹窗
       dialogVisible: false,

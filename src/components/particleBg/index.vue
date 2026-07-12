@@ -7,7 +7,7 @@
     → 光标特效(9999)
 -->
 <template>
-  <div class="bg-root">
+  <div style="display:contents">
     <!-- ====== 底层: 静态图层 ====== -->
     <div class="bg-layers">
       <!-- 背景图 -->
@@ -419,20 +419,15 @@ export default {
 </script>
 
 <style lang="scss">
-.bg-root {
+// display:contents 根元素不创建盒模型，下面两个子元素各自独立 fixed，z-index 作用到视口级
+
+// ====== 底层：静态图层 (fixed, z:0, 在 #app 下方) ======
+.bg-layers {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   overflow: hidden;
   pointer-events: none;
-  z-index: 0;
-}
-
-// ====== 底层：静态图层 (z-index: 0 内部) ======
-.bg-layers {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
   z-index: 0;
   background: #1a1a2e;
 }
@@ -462,11 +457,12 @@ export default {
   width: 100%; height: 100%;
 }
 
-// ====== 顶层：粒子 (z-index: 3, 高于 #app 的 z-index:1) ======
+// ====== 顶层：粒子 (fixed, z:3, 覆盖 #app 的 z:1) ======
 .bg-particles {
-  position: absolute;
+  position: fixed;
   top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
   z-index: 3;
 }
 

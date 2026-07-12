@@ -89,6 +89,12 @@ const adminRoutes = {
       meta: { title: '首页内容 | 管理后台' }
     },
     {
+      path: 'editor/about',
+      name: 'AboutEditorRoute',
+      component: () => import('../views/admin/AboutEditor.vue'),
+      meta: { title: '关于页 | 管理后台' }
+    },
+    {
       path: 'posts',
       name: 'PostsManager',
       component: () => import('../views/admin/PostsManager.vue'),

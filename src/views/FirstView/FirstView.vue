@@ -40,7 +40,7 @@ import footerView from "@/components/footerView/index.vue"
 import VueMarkdown from "vue-markdown"
 // 使用 webpack asset/source 加载 .md 为纯文本字符串
 import markdownRaw from "../home.md"
-import pageConfigStore from '@/stores/pageConfig'
+import { getSectionConfig } from '@/services/pageConfigService'
 import "./css/FirstView.scss"
 import "highlight.js/styles/github.css"
 import "github-markdown-css"
@@ -67,13 +67,13 @@ export default {
   async created() {
     // 从云端加载关于页配置
     try {
-      await pageConfigStore.loadAll(['about'])
-      const about = pageConfigStore.getSection('about')
+      const about = await getSectionConfig('about')
       if (about.banner_image) this.bannerImage = about.banner_image
       if (about.banner_title) this.title = about.banner_title
       if (about.sidebar_avatar) this.sidebarAvatar = about.sidebar_avatar
       if (about.sidebar_name) this.sidebarName = about.sidebar_name
       if (about.sidebar_bio) this.sidebarBio = about.sidebar_bio
+      if (about.markdown_content) this.markdownContent = about.markdown_content
     } catch (err) {
       console.warn('[FirstView] 加载云端配置失败，使用默认值:', err.message)
     }

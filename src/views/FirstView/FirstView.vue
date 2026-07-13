@@ -338,19 +338,18 @@ export default {
 
     // ====== 隐藏游戏：连续上滚触发 ======
     onWheel(e) {
-      if (this.gameActive || window.scrollY > 5) return
+      if (this.gameActive) return
+      // 仅在页面顶部时响应上滚触发（允许少量偏移）
+      if (window.scrollY > 15) return
 
-      // 向下滚 → 立即清零
-      if (e.deltaY >= 0) {
-        this.resetScrollCount()
-        return
-      }
+      // 向下滚不重置（避免触控板抖动误杀），仅忽略
+      if (e.deltaY >= 0) return
 
       // 向上滚 → 计数+1
       e.preventDefault()
       const now = Date.now()
 
-      // 超过衰减时间窗口 → 重新开始计数
+      // 超过衰减窗口 → 重新计数
       if (this.lastScrollTime && now - this.lastScrollTime > DECAY_MS) {
         this.scrollCount = 0
       }
@@ -365,7 +364,6 @@ export default {
         this.resetScrollCount()
       }, DECAY_MS)
 
-      // 达到触发次数 → 激活游戏
       if (this.scrollCount >= TRIGGER_COUNT) {
         this.activateGame()
       }

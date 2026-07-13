@@ -15,7 +15,7 @@
     <div class="game-ui">
       <div class="game-score">{{ score }}</div>
       <div class="game-combo" v-if="combo >= 3">🔥 x{{ combo }}</div>
-      <div class="game-hint">🧲 鼠标引力 → 喂给小猫</div>
+      <div class="game-hint">这是什么？Capoo~</div>
     </div>
 
     <div class="stability-bar">

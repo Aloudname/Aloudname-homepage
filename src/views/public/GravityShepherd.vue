@@ -77,7 +77,7 @@ export default {
 
   mounted() {
     const c = this.$refs.canvas
-    if (!c) return
+    if (!c) { console.error('[GS] canvas ref missing'); return }
     this.ctx = c.getContext('2d')
     this.W = c.width  = window.innerWidth
     this.H = c.height = window.innerHeight
@@ -114,6 +114,7 @@ export default {
 
     // ====== 主循环 ======
     loop(ts) {
+      try {
       const dt = Math.min((ts - this.lastT) / 1000, 0.1)
       this.lastT = ts
       this.elapsed += dt
@@ -152,7 +153,8 @@ export default {
         const dx = m.x - this.ring.x, dy = m.y - this.ring.y
         const d = Math.sqrt(dx * dx + dy * dy)
         if (d > 1) {
-          const F = (gS * catM * this.cursorMass) / Math.max(d, 20)
+          // 容器用 1/d 衰减（比粒子的 1/d² 更远距离响应）
+          const F = catM * 120 / Math.max(d, 30)
           this.ring.vx += (dx / d) * F / catM
           this.ring.vy += (dy / d) * F / catM
         }
@@ -228,6 +230,7 @@ export default {
 
       ctx.globalAlpha = 1
       this.animId = requestAnimationFrame(t => this.loop(t))
+      } catch(e) { console.error('[GravityShepherd] loop error:', e.message) }
     },
 
     // ====== 粒子生成 ======

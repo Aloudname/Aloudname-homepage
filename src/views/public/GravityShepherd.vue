@@ -135,9 +135,9 @@ export default {
       }
 
       // Lissajous 环
-      this.ring.phase += this.ringSpeed() * dt
+      this.ring.phase += this.ringSpeed * dt
       const ph = this.ring.phase
-      const amp = this.ringAmp()
+      const amp = this.ringAmp
       this.ring.x = this.width / 2  + Math.sin(3 * ph + 0.7) * amp * this.width
       this.ring.y = this.height / 2 + Math.cos(2 * ph)       * amp * this.height
 
@@ -193,7 +193,7 @@ export default {
 
         // 绘制粒子
         const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
-        const alpha = Math.min(1, 0.25 + speed / this.avgSpeed() * 0.5)
+        const alpha = Math.min(1, 0.25 + speed / this.avgSpeed * 0.5)
         ctx.fillStyle = this.particleColor
         ctx.globalAlpha = alpha
         ctx.beginPath()
@@ -278,7 +278,7 @@ export default {
     // ====== 生成 ======
     spawn() {
       const edge = Math.floor(Math.random() * 4)
-      const s = Math.max(0.5, this.normal(this.avgSpeed(), this.avgSpeed() * 0.3))
+      const s = Math.max(0.5, this.normal(this.avgSpeed, this.avgSpeed * 0.3))
       const a = Math.random() * Math.PI * 2
       let x, y, vx, vy
       switch (edge) {

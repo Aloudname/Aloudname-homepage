@@ -165,7 +165,7 @@ import footerView from "@/components/footerView/index.vue"
 import VueMarkdown from "vue-markdown"
 import markdownRaw from "../home.md"
 import { getSectionConfig } from '@/services/pageConfigService'
-import { getUser, getReposCached, getEventsCached, calcLanguages, getTopProjects, calcTotalStars, parseEvents } from '@/services/githubService'
+import { getUserCached, getReposCached, getEventsCached, calcLanguages, getTopProjects, calcTotalStars, parseEvents } from '@/services/githubService'
 import "./css/FirstView.scss"
 import "highlight.js/styles/github.css"
 import "github-markdown-css"
@@ -271,7 +271,7 @@ export default {
       try {
         const name = this.ghUsername || 'Aloudname'
         const [user, repos, events] = await Promise.all([
-          getUser(name), getReposCached(name), getEventsCached(name),
+          getUserCached(name), getReposCached(name), getEventsCached(name),
         ])
         this.ghUser = user; this.ghRepos = repos; this.ghEvents = events
         this.ghLoading = false  // 必须在 $nextTick 前关闭 loading，否则模板仍渲染骨架屏

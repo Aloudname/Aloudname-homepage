@@ -4,54 +4,40 @@
  */
 const API = 'https://api.github.com'
 
-// ===== 带超时的 fetch =====
-async function fetchGH(path, timeoutMs = 10000) {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    const res = await fetch(API + path, {
-      headers: { Accept: 'application/vnd.github.v3+json' },
-      signal: controller.signal,
-    })
-    if (!res.ok) throw new Error(`GitHub API ${res.status}`)
-    return res.json()
-  } finally {
-    clearTimeout(timer)
-  }
+// ===== 基础 fetch =====
+async function fetchGH(path) {
+  const res = await fetch(API + path, {
+    headers: { Accept: 'application/vnd.github.v3+json' },
+  })
+  if (!res.ok) throw new Error(`GitHub API ${res.status}`)
+  return res.json()
 }
 
-// ===== localStorage 缓存层 (30min TTL, 失败时用过期缓存兜底) =====
+// ===== localStorage 缓存层 (30min TTL) =====
 const CACHE_TTL = 30 * 60 * 1000
 
 async function cached(key, fetcher) {
-  let staleData = null
+  // 检查缓存
   try {
     const raw = localStorage.getItem(key)
     if (raw) {
-      const parsed = JSON.parse(raw)
-      staleData = parsed.data  // 保留过期数据作为兜底
-      if (Date.now() - parsed.ts < CACHE_TTL) return parsed.data
+      const { data, ts } = JSON.parse(raw)
+      if (Date.now() - ts < CACHE_TTL) return data
     }
-  } catch (_) { /* ignore corrupt cache */ }
+  } catch (_) {}
 
-  // 尝试 2 次（含首次）
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const data = await fetcher()
-      try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })) } catch (_) {}
-      return data
-    } catch (err) {
-      if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue }
-      // 2 次都失败 → 用过期缓存兜底
-      if (staleData) return staleData
-      throw err
-    }
-  }
+  // 请求新数据
+  const data = await fetcher()
+  try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })) } catch (_) {}
+  return data
 }
 
 /** 获取用户资料 */
 export async function getUser(username) {
   return fetchGH(`/users/${username}`)
+}
+export async function getUserCached(username) {
+  return cached(`gh_user_${username}`, () => getUser(username))
 }
 
 /** 获取仓库列表 */

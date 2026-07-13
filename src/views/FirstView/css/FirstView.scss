@@ -1,16 +1,5 @@
-/*
- * @Author: chaichai chaichai@cute.com
- * @Date: 2022-09-28 09:53:31
- * @LastEditors: chaichai chaichai@cute.com
- * @LastEditTime: 2022-10-10 11:30:00
- * @FilePath: \blog3.0\src\views\FirstView\css\FirstView.scss
- * @Description: 
- * 
- * Copyright (c) 2022 by CQUCC-4-433, All Rights Reserved. 
- */
 .aboutBox {
-  height: 100%;
-  // 背景图片
+  min-height: 100vh;
   background: url("@/assets/cover.jpg");
   background-repeat: no-repeat;
   background-size: 500px;
@@ -19,145 +8,320 @@
 
   .mainBox {
     position: relative;
-    width: 70%;
-    margin: 0 auto;
-    margin-top: 10px;
+    width: 75%;
+    max-width: 1200px;
+    margin: -40px auto 0;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding-bottom: 60px;
+    z-index: 2;
 
     .contentBox {
-      width: 71%;
-      background: #fff;
-      box-shadow: 0 1px 10px rgb(0 0 0 / 10%);
-      text-align: left;
-      padding: 0 20px;
-      margin-bottom: 30px;
-    }
-
-    .asideBoxFix {
-      position: fixed;
-      top: 0px;
-      right: 286px;
-      box-shadow: 0 1px 10px rgb(0 0 0 / 10%);
-      width: 335px;
-    //   height: 55vh;
-      background: #fff;
-      .el-avatar--circle{
-        width: 100px!important;
-        height: 100px!important;
-      }
-
-      .bottomImg {
-        display: block;
-        width: 100%;
-      }
-
-      .asideImg {
-        position: relative;
-        width: 100%;
-        height: 140px;
-        //侧边栏顶部图片--固定位置后
-        background: url("");
-        background-position: 0 -70px;
-        background-size: cover;
-
-        .asidePic {
-          border: 4px solid rgb(241, 241, 241);
-          position: absolute;
-          margin: 0 auto;
-          left: 50%;
-          bottom: -38px;
-          transform: translate(-50%);
-        }
-      }
-
-      .asideTile {
-        padding: 0 20px;
-        color: rgb(51, 51, 51);
-        margin-top: 45px;
-        font-size: 20px;
-        font-weight: 550;
-        letter-spacing: 3px;
-      }
-
-      .asideTile1 {
-        padding: 0 20px;
-        color: rgb(51, 51, 51);
-        margin-top: 10px;
-        font-size: 20px;
-        font-weight: 550;
-        letter-spacing: 3px;
-      }
-    }
-
-    .asideBox {
-      position: absolute;
-      top: 0;
-      right: 0;
-      box-shadow: 0 1px 10px rgb(0 0 0 / 10%);
-      width: 25%;
-      background: #fff;
-      .el-avatar--circle{
-        width: 100px!important;
-        height: 100px!important;
-      }
-      .bottomImg {
-        display: block;
-        width: 100%;
-      }
-
-      .asideImg {
-        position: relative;
-        width: 100%;
-        height: 140px;
-        // 侧边栏顶部图片--原始
-        background: url("");
-        background-position: 0 -70px;
-        background-size: cover;
-
-        .asidePic {
-          border: 4px solid rgb(241, 241, 241);
-          position: absolute;
-          margin: 0 auto;
-          left: 50%;
-          bottom: -38px;
-          transform: translate(-50%);
-        }
-      }
-
-      .asideTile {
-        padding: 0 20px;
-        color: rgb(51, 51, 51);
-        margin-top: 45px;
-        font-size: 20px;
-        font-weight: 550;
-        letter-spacing: 3px;
-      }
-
-      .asideTile1 {
-        padding: 0 20px;
-        color: rgb(51, 51, 51);
-        margin-top: 10px;
-        font-size: 20px;
-        font-weight: 550;
-        letter-spacing: 3px;
-      }
+      flex: 1;
+      min-width: 0;
     }
   }
+}
 
-  .go-top {
-    z-index: 99999999;
-    position: fixed;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    //返回顶部图片
-    background: url("@/assets/bg6.jpg");
-    background-size: cover;
-    bottom: 50px;
-    right: 50px;
+// ====== 玻璃质感面板 ======
+.glass {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  color: #e0e0e0;
+  transition: border-color 0.3s;
 
-    .backTopbtn {
-      font-style: 20px;
-      margin: 10px auto;
+  &:hover {
+    border-color: rgba(255,255,255,0.22);
+  }
+}
+
+.panel-head {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.empty-note {
+  text-align: center;
+  color: rgba(255,255,255,0.3);
+  padding: 24px;
+  font-size: 14px;
+}
+
+// ====== 统计卡片行 ======
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 20px 16px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s, border-color 0.3s;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .stat-icon { font-size: 28px; margin-bottom: 8px; }
+  .stat-num { font-size: 28px; font-weight: 800; color: #fff; }
+  .stat-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+}
+
+// ====== 双栏布局 ======
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+// ====== 语言条 ======
+.lang-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lang-bar {
+  .lang-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 4px;
+    .lang-name { color: #ccc; }
+    .lang-pct { color: rgba(255,255,255,0.4); }
+  }
+  .lang-track {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+    .lang-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease;
     }
+  }
+}
+
+// ====== 项目列表 ======
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.proj-item {
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateX(4px);
+  }
+
+  .proj-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    .proj-name { font-size: 14px; font-weight: 600; color: #fff; }
+    .proj-stars { font-size: 12px; color: #f0c040; }
+  }
+  .proj-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.4;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .proj-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    display: flex;
+    gap: 12px;
+    .lang-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  }
+}
+
+// ====== 活动时间线 ======
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.act-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  transition: background 0.2s;
+
+  &:hover { background: rgba(255,255,255,0.07); }
+
+  .act-icon { font-size: 15px; flex-shrink: 0; }
+  .act-verb { color: rgba(255,255,255,0.5); flex-shrink: 0; }
+  .act-repo { color: #7ec8e3; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .act-time { color: rgba(255,255,255,0.25); font-size: 11px; margin-left: auto; flex-shrink: 0; }
+}
+
+// ====== 加载 ======
+.loading-card {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 16px;
+}
+
+// ====== Markdown 回退 ======
+.contentTitle {
+  background: rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 30px;
+  backdrop-filter: blur(12px);
+  .markdown-body {
+    text-align: left;
+    color: #ddd;
+    font-size: 16px;
+    line-height: 1.8;
+    h1,h2,h3 { color: #fff; }
+    a { color: #7ec8e3; }
+    img { max-width: 100%; border-radius: 8px; }
+    pre { border-radius: 8px; }
+    code { color: #f0c040; }
+  }
+}
+
+// ====== 侧边栏 ======
+.asideBox, .asideBoxFix {
+  width: 260px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: center;
+
+  .el-avatar--circle {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  .bottomImg { display: block; width: 100%; }
+
+  .asideImg {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    background: url("");
+    background-position: 0 -70px;
+    background-size: cover;
+    .asidePic {
+      border: 3px solid rgba(255,255,255,0.3);
+      position: absolute;
+      left: 50%;
+      bottom: -38px;
+      transform: translate(-50%);
+    }
+  }
+  .asideTile {
+    padding: 0 16px;
+    color: #fff;
+    margin-top: 48px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+  .asideTile1 {
+    padding: 0 16px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .aside-extra {
+    text-align: left;
+    padding: 0 16px 8px;
+    .aside-row {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      margin: 4px 0;
+    }
+  }
+}
+
+.asideBoxFix {
+  position: fixed;
+  top: 10px;
+  right: calc((100vw - 75vw) / 2 - 30px);
+}
+
+.asideBox {
+  position: sticky;
+  top: 10px;
+}
+
+// ====== 返回顶部 ======
+.go-top {
+  z-index: 100;
+  position: fixed;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  bottom: 40px;
+  right: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+    background: rgba(255,255,255,0.2);
+  }
+
+  .backTopbtn {
+    width: 24px;
+    height: 24px;
   }
 }

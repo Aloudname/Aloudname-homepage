@@ -72,6 +72,17 @@
       </template>
     </div>
 
+    <!-- ====== GitHub 集成 ====== -->
+    <div class="editor-panel">
+      <div class="panel-title">🐙 GitHub 集成</div>
+      <el-form-item label="GitHub 用户名">
+        <el-input v-model="form.gh_username" placeholder="如: Aloudname（留空则使用默认）" />
+      </el-form-item>
+      <p style="color:#909399;font-size:12px;">
+        用于在关于页展示技术栈、精选项目和最近动态。使用 GitHub 公开 API，无需 token。
+      </p>
+    </div>
+
     <!-- ====== 页面背景 ====== -->
     <div class="editor-panel">
       <div class="panel-title">🎨 页面背景</div>

@@ -67,7 +67,7 @@ export default {
     },
     avgSpd()  { return Math.min(2.5 + Math.log(1 + this.score) * 0.8, 8) },
     spnRate() { return Math.min(1.5 + Math.log(1 + this.score) * 0.5, 5) },
-    catMass() { return 8 },  // 容器质量大 → 惯性大，不容易被鼠标甩飞
+    catMass() { return 8 },  // 容器质量大、惯性大，不容易被鼠标甩飞
     stabColor() {
       if (this.stability > 60) return '#42b983'
       if (this.stability > 30) return '#e6a23c'
@@ -132,7 +132,7 @@ export default {
       }
 
       // ---- 生成粒子 ----
-      const MAX = 32
+      const MAX = 16
       this.spawnAcc += dt
       const ival = 1 / this.spnRate
       while (this.spawnAcc > ival && this.particles.length < MAX) {

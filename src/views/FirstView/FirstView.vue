@@ -6,6 +6,11 @@
 
     <bannerView :imgUrl="bannerImage" :titleName="title" height="45vh" ref="banner" />
 
+    <!-- 调试标记：如果页面加载但看不到内容，至少能看到这条 -->
+    <div v-if="!ghLoading && !ghUser && !markdownContent" style="color:#fff;text-align:center;padding:60px;">
+      <h3>正在连接 GitHub...</h3>
+    </div>
+
     <div class="mainBox">
       <div class="contentBox">
         <!-- 加载骨架 -->

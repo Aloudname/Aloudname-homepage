@@ -43,6 +43,7 @@
               :src="getSocialIcon(link)"
               :alt="link.platform"
               class="social-icon"
+              :style="link.platform === 'HuggingFace' ? '' : 'filter: brightness(0) invert(1)'"
               @click="handleSocialClick(link)"
               :title="link.platform"
             />

@@ -131,7 +131,7 @@
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s, transform 0.2s;
-  filter: brightness(0) invert(1); // 白色图标
+  // filter 改为模板中按图标类型单独控制
 
   &:hover {
     opacity: 1;

@@ -139,6 +139,13 @@ export default {
         this.spawnAcc -= ival
       }
 
+      // ---- 共享变量（容器和粒子都会用到） ----
+      const m = this.mouse
+      const gS = this.gravityStrength
+      const gR = this.gravityRange
+      const cM = this.cursorMass
+      const pM = this.particleMass
+
       // ---- 容器（猫）物理：鼠标引力 + 惯性 + 边界约束 ----
       const catM = this.catMass
       if (m.active) {
@@ -169,14 +176,7 @@ export default {
       while (aDiff < -Math.PI) aDiff += Math.PI * 2
       this.ring.angle += aDiff * Math.min(dt * 8, 1)
 
-      // ---- 鼠标 ----
-      const m = this.mouse
-      const gS = this.gravityStrength
-
       // ---- 粒子物理 ----
-      const gR = this.gravityRange
-      const cM = this.cursorMass
-      const pM = this.particleMass
       const pSz = 5
       let capped = false
 

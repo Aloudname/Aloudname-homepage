@@ -244,7 +244,8 @@ export default {
     window.addEventListener("scroll", this.scrollToTop)
     window.addEventListener("wheel", this.onWheel, { passive: false })
     this.$nextTick(() => { if (this.$refs.banner) this.bannerH = this.$refs.banner.$el.offsetHeight })
-    this.typeBio(); this.setupRevealObserver()
+    this.typeBio()
+    // 注意：setupRevealObserver 在 GitHub 数据加载完成后调用，不在 mounted 中
   },
   destroyed() {
     window.removeEventListener("scroll", this.scrollToTop)
@@ -261,7 +262,9 @@ export default {
           getUser(name), getReposCached(name), getEventsCached(name),
         ])
         this.ghUser = user; this.ghRepos = repos; this.ghEvents = events
-        await this.$nextTick(); this.animateStats()
+        await this.$nextTick()
+        this.animateStats()
+        this.setupRevealObserver()  // 内容渲染后再注册 Observer
       } catch (err) { console.warn('[FirstView] GitHub:', err.message) }
       finally { this.ghLoading = false }
     },

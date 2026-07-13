@@ -410,3 +410,122 @@
 @include phone {
   .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+// ====== 交互效果 ======
+
+// 3D 倾斜卡片
+.tilt-card {
+  transition: transform 0.15s ease-out, box-shadow 0.3s;
+  &:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+}
+
+// 滚动揭示
+.reveal-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+  &.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 语言条交错入场
+.lang-bar {
+  opacity: 0;
+  transform: translateX(-16px);
+  animation: barSlideIn 0.5s ease forwards;
+}
+@keyframes barSlideIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+// 活动圆点脉冲
+.act-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+
+  &.pulse {
+    background: #42b983;
+    box-shadow: 0 0 8px rgba(66,185,131,0.6);
+    animation: dotPulse 2s infinite;
+  }
+  .act-item:hover & {
+    background: #7ec8e3;
+    box-shadow: 0 0 10px rgba(126,200,227,0.5);
+  }
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(66,185,131,0.4); }
+  50%      { box-shadow: 0 0 16px rgba(66,185,131,0.8); }
+}
+
+// 活动项滑入
+.act-item {
+  opacity: 0;
+  transform: translateX(-12px);
+  animation: actSlideIn 0.35s ease forwards;
+}
+@keyframes actSlideIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+// 打字光标闪烁
+.cursor-blink {
+  color: #42b983;
+  font-weight: 300;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+// 统计卡 hover 发光
+.stat-card {
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 20px rgba(126,200,227,0.1);
+  }
+}
+
+// 项目卡片 hover
+.proj-item {
+  transition: all 0.25s ease;
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    border-left: 3px solid #7ec8e3;
+    padding-left: 18px;
+  }
+}
+
+// 打字文本
+.typing-bio {
+  display: inline;
+}
+
+// ====== 游戏面板过渡 ======
+.game-reveal-enter-active {
+  transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.game-reveal-leave-active {
+  transition: transform 0.4s ease-in;
+}
+.game-reveal-enter {
+  transform: translateY(-100vh);
+}
+.game-reveal-leave-to {
+  transform: translateY(-100vh);
+}
+
+// 弹簧拉扯视觉提示
+.spring-pulling {
+  transition: transform 0.15s ease-out;
+}

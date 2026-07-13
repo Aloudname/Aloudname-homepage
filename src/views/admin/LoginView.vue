@@ -4,7 +4,7 @@
 <template>
   <div class="login-page">
     <div class="login-card">
-      <div class="login-title">🔒 管理员登录</div>
+      <div class="login-title">这是什么？点一下</div>
 
       <el-form
         ref="form"
@@ -16,7 +16,7 @@
         <el-form-item label="邮箱" prop="email">
           <el-input
             v-model="form.email"
-            placeholder="请输入管理员邮箱"
+            placeholder="这是什么？"
             prefix-icon="el-icon-user"
           />
         </el-form-item>
@@ -25,7 +25,7 @@
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="请输入密码"
+            placeholder="这又是什么!"
             prefix-icon="el-icon-lock"
             show-password
             @keyup.enter.native="handleLogin"
@@ -45,7 +45,7 @@
       </el-form>
 
       <div class="login-footer">
-        <span>仅限管理员访问</span>
+        <span>🤫</span>
       </div>
     </div>
   </div>

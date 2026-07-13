@@ -83,6 +83,36 @@
       </p>
     </div>
 
+    <!-- ====== 隐藏游戏设置 ====== -->
+    <div class="editor-panel">
+      <div class="panel-title">🎮 隐藏粒子游戏</div>
+      <p style="color:#909399;font-size:12px;margin-bottom:12px;">
+        在 About 页顶部向上滚动即可触发。用鼠标引力将粒子投入移动容器中得分。
+      </p>
+      <el-row :gutter="16">
+        <el-col :span="12">
+          <el-form-item label="游戏背景图 URL">
+            <el-input v-model="form.game_bg_image" placeholder="游戏界面背景图">
+              <el-button slot="append" @click="openPicker('gamebg')">选择</el-button>
+            </el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="渐变颜色1">
+            <el-color-picker v-model="gameGrad1" size="small" @change="onGameGradChange" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="渐变颜色2">
+            <el-color-picker v-model="gameGrad2" size="small" @change="onGameGradChange" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item label="粒子颜色">
+        <el-color-picker v-model="form.game_particle_color" size="small" />
+      </el-form-item>
+    </div>
+
     <!-- ====== 页面背景 ====== -->
     <div class="editor-panel">
       <div class="panel-title">🎨 页面背景</div>
@@ -170,7 +200,9 @@ export default {
         page_bg_image: '', page_bg_opacity: 0.15,
         backtop_visible: true, backtop_icon: '',
         markdown_content: '',
+        game_bg_image: '', game_gradient: ['#1a1a2e', '#0f3460'], game_particle_color: '#00ff88',
       },
+      gameGrad1: '#1a1a2e', gameGrad2: '#0f3460',
     }
   },
 
@@ -185,15 +217,23 @@ export default {
         for (const k of keys) {
           if (cfg[k] !== undefined && cfg[k] !== null) this.form[k] = cfg[k]
         }
+        if (this.form.game_gradient?.length >= 2) {
+          this.gameGrad1 = this.form.game_gradient[0]
+          this.gameGrad2 = this.form.game_gradient[1]
+        }
       } catch (err) { console.error('加载关于页配置失败:', err) }
       finally { this.loading = false }
+    },
+
+    onGameGradChange() {
+      this.form.game_gradient = [this.gameGrad1, this.gameGrad2]
     },
 
     openPicker(target) { this.pickTarget = target; this.showPicker = true },
 
     onAssetPicked(asset) {
       const url = asset.public_url
-      const map = { banner: 'banner_image', avatar: 'sidebar_avatar', bottom: 'sidebar_bottom_img', pagebg: 'page_bg_image', backtop: 'backtop_icon' }
+      const map = { banner: 'banner_image', avatar: 'sidebar_avatar', bottom: 'sidebar_bottom_img', pagebg: 'page_bg_image', backtop: 'backtop_icon', gamebg: 'game_bg_image' }
       const key = map[this.pickTarget]
       if (key) this.form[key] = url
       this.showPicker = false

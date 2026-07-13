@@ -3,42 +3,39 @@
     <bannerView :imgUrl="bannerImage" :titleName="title" height="60vh" ref="banner" />
 
     <div class="mainBox">
-      <!-- ====== 主内容区: GitHub 数据面板 ====== -->
+      <!-- ====== 主内容区 ====== -->
       <div class="contentBox">
-        <div v-if="ghLoading" class="skeleton-grid">
-          <div class="skel-card" v-for="n in 4" :key="n">
-            <div class="skel-bar w60"></div>
-            <div class="skel-bar w40 skel-bar-short"></div>
+        <!-- 加载骨架 -->
+        <div v-if="ghLoading">
+          <div class="skeleton-grid">
+            <div class="skel-card" v-for="n in 4" :key="n">
+              <div class="skel-bar w60"></div><div class="skel-bar w40 skel-bar-short"></div>
+            </div>
           </div>
-        </div>
-        <div v-if="ghLoading" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
-          <div class="skel-card"><div class="skel-bar w80"></div><div class="skel-bar w60 skel-bar-short"></div><div class="skel-bar w40 skel-bar-short"></div></div>
-          <div class="skel-card"><div class="skel-bar w80"></div><div class="skel-bar w60 skel-bar-short"></div><div class="skel-bar w40 skel-bar-short"></div></div>
-        </div>
-        <div v-if="ghLoading" class="skel-card">
-          <div class="skel-bar w80"></div><div class="skel-bar w60 skel-bar-short"></div><div class="skel-bar w40 skel-bar-short"></div>
         </div>
 
         <template v-else-if="ghUser">
-          <!-- 统计卡片 -->
-          <div class="stats-row">
-            <div class="stat-card" v-for="s in statCards" :key="s.label">
+          <!-- ====== 统计卡片（计数动画） ====== -->
+          <div class="stats-row" ref="statsRow">
+            <div class="stat-card tilt-card" v-for="s in statCards" :key="s.label"
+              @mousemove="onTilt($event)" @mouseleave="offTilt($event)">
               <div class="stat-icon">{{ s.icon }}</div>
-              <div class="stat-num">{{ s.value }}</div>
+              <div class="stat-num" ref="statNums">{{ animated[s.label] || 0 }}</div>
               <div class="stat-label">{{ s.label }}</div>
             </div>
           </div>
 
-          <!-- 技术栈 + 项目 两栏 -->
+          <!-- ====== 两栏: 技术栈 + 项目 ====== -->
           <div class="two-col">
-            <!-- 左侧: 技术栈 -->
-            <div class="panel glass">
+            <!-- 技术栈 -->
+            <div class="panel glass reveal-section" ref="revealEls">
               <div class="panel-head">🛠️ 技术栈</div>
               <div class="lang-bars" v-if="languages.length">
-                <div class="lang-bar" v-for="l in languages" :key="l.name">
+                <div class="lang-bar" v-for="(l, i) in languages" :key="l.name"
+                  :style="{ animationDelay: i * 0.08 + 's' }">
                   <div class="lang-info">
-                    <span class="lang-name">{{ l.name }}</span>
-                    <span class="lang-pct">{{ l.percent }}%</span>
+                    <span class="lang-name">● {{ l.name }}</span>
+                    <span class="lang-pct">{{ l.percent }}% · {{ l.count }} repos</span>
                   </div>
                   <div class="lang-track">
                     <div class="lang-fill" :style="{ width: l.percent + '%', background: l.color }"></div>
@@ -48,12 +45,12 @@
               <div v-else class="empty-note">暂无数据</div>
             </div>
 
-            <!-- 右侧: 精选项目 -->
-            <div class="panel glass">
+            <!-- 精选项目（3D 倾斜卡片） -->
+            <div class="panel glass reveal-section" ref="revealEls">
               <div class="panel-head">📌 精选项目</div>
               <div class="project-list" v-if="topProjects.length">
-                <div class="proj-item" v-for="p in topProjects" :key="p.id"
-                  @click="openUrl(p.html_url)">
+                <div class="proj-item tilt-card" v-for="p in topProjects" :key="p.id"
+                  @click="openUrl(p.html_url)" @mousemove="onTilt($event)" @mouseleave="offTilt($event)">
                   <div class="proj-top">
                     <span class="proj-name">📁 {{ p.name }}</span>
                     <span class="proj-stars">⭐ {{ p.stargazers_count }}</span>
@@ -65,6 +62,7 @@
                       {{ p.language }}
                     </span>
                     <span v-if="p.forks_count">🍴 {{ p.forks_count }}</span>
+                    <span v-if="p.open_issues_count">⚠️ {{ p.open_issues_count }}</span>
                   </div>
                 </div>
               </div>
@@ -72,11 +70,14 @@
             </div>
           </div>
 
-          <!-- 最近活动 -->
-          <div class="panel glass">
+          <!-- ====== 最近动态（交互时间线） ====== -->
+          <div class="panel glass reveal-section" ref="revealEls">
             <div class="panel-head">📅 最近动态</div>
             <div class="activity-list" v-if="activities.length">
-              <div class="act-item" v-for="(a, i) in activities" :key="i">
+              <div class="act-item" v-for="(a, i) in activities" :key="i"
+                :style="{ animationDelay: i * 0.04 + 's' }"
+                @mouseenter="a._hover = true" @mouseleave="a._hover = false">
+                <span class="act-dot" :class="{ pulse: i < 3 }"></span>
                 <span class="act-icon">{{ a.icon }}</span>
                 <span class="act-verb">{{ a.verb }}</span>
                 <span class="act-repo">{{ a.repo }}</span>
@@ -87,11 +88,9 @@
           </div>
         </template>
 
-        <!-- GitHub 数据不可用时的回退: Markdown 内容 -->
-        <div v-else-if="markdownContent" class="contentTitle">
-          <div class="markdown-body">
-            <VueMarkdown :source="markdownContent" />
-          </div>
+        <!-- Markdown 回退 -->
+        <div v-else-if="markdownContent" class="contentTitle reveal-section" ref="revealEls">
+          <div class="markdown-body"><VueMarkdown :source="markdownContent" /></div>
         </div>
       </div>
 
@@ -101,9 +100,10 @@
           <el-avatar :src="sidebarAvatar || ghUser?.avatar_url" :size="sidebarAvatarSize" class="asidePic" />
         </div>
         <div class="asideTile">{{ sidebarName || ghUser?.login || '' }}</div>
-        <div class="asideTile1">{{ sidebarBio || ghUser?.bio || '' }}</div>
+        <div class="asideTile1">
+          <span class="typing-bio">{{ displayedBio }}</span><span class="cursor-blink">|</span>
+        </div>
         <el-divider>{{ sidebarDivider }}</el-divider>
-        <!-- GitHub 额外信息 -->
         <div v-if="ghUser" class="aside-extra">
           <div v-if="ghUser.location" class="aside-row">📍 {{ ghUser.location }}</div>
           <div v-if="ghUser.company" class="aside-row">🏢 {{ ghUser.company }}</div>
@@ -119,6 +119,17 @@
     </div>
 
     <footerView />
+
+    <!-- ====== 隐藏粒子游戏 ====== -->
+    <transition name="game-reveal">
+      <ParticleGame
+        v-if="gameActive"
+        :bgImage="gameBgImage"
+        :gradient="gameGradient"
+        :particleColor="gamePColor"
+        @close="closeGame"
+      />
+    </transition>
   </div>
 </template>
 
@@ -133,6 +144,11 @@ import "./css/FirstView.scss"
 import "highlight.js/styles/github.css"
 import "github-markdown-css"
 
+// 隐藏游戏懒加载
+const ParticleGame = () => import('@/views/public/ParticleGame.vue')
+
+const THRESHOLD = 150  // 上滚超过此值触发游戏
+
 const LANG_COLORS = {
   JavaScript:'#f1e05a', TypeScript:'#3178c6', Vue:'#41b883', Python:'#3572A5',
   Java:'#b07219', Go:'#00ADD8', Rust:'#dea584', CSS:'#563d7c', HTML:'#e34c26',
@@ -142,21 +158,29 @@ const LANG_COLORS = {
 
 export default {
   name: 'FirstView',
-  components: { bannerView, VueMarkdown, footerView },
+  components: { bannerView, VueMarkdown, footerView, ParticleGame },
 
   data() {
     return {
       bannerH: 0, locked: false, btnFlag: false,
-      // 云端配置
       bannerImage: "", title: "首页",
-      sidebarVisible: true, sidebarAvatar: "", sidebarAvatarSize: 90,
+      sidebarVisible: true, sidebarAvatar: "", sidebarAvatarSize: 110,
       sidebarName: "", sidebarBio: "", sidebarDivider: "🌴", sidebarBottomImg: "",
       pageBgImage: "", pageBgOpacity: 0.15,
       backtopVisible: true, backtopIcon: "",
       markdownContent: markdownRaw,
       ghUsername: 'Aloudname',
-      // GitHub 数据
       ghLoading: true, ghUser: null, ghRepos: [], ghEvents: [],
+      // 交互状态
+      animated: {},
+      displayedBio: '',
+      observer: null,
+      // 隐藏游戏
+      gameActive: false,
+      overscroll: 0,
+      gameBgImage: '',
+      gameGradient: ['#1a1a2e', '#0f3460'],
+      gamePColor: '#00ff88',
     }
   },
 
@@ -172,21 +196,19 @@ export default {
     statCards() {
       const u = this.ghUser || {}
       return [
-        { icon:'📦', value: u.public_repos||0, label:'仓库' },
+        { icon:'📦', value: u.public_repos||0, label:'Repos' },
         { icon:'⭐', value: this.totalStars, label:'Stars' },
         { icon:'👥', value: u.followers||0, label:'Followers' },
-        { icon:'📌', value: u.public_gists||0, label:'Gists' },
+        { icon:'🐙', value: u.following||0, label:'Following' },
       ]
     },
   },
 
   async created() {
-    // 并行加载: 页面配置 + GitHub 数据
-    const [cfg, , , ] = await Promise.allSettled([
+    const [cfg] = await Promise.allSettled([
       getSectionConfig('about'),
       this.loadGitHub(),
     ])
-
     if (cfg.status === 'fulfilled' && cfg.value) {
       const c = cfg.value
       if (c.banner_image) this.bannerImage = c.banner_image
@@ -204,18 +226,33 @@ export default {
       if (c.backtop_icon) this.backtopIcon = c.backtop_icon
       if (c.markdown_content) this.markdownContent = c.markdown_content
       if (c.gh_username) this.ghUsername = c.gh_username
+      // 游戏配置
+      if (c.game_bg_image) this.gameBgImage = c.game_bg_image
+      if (c.game_gradient) this.gameGradient = c.game_gradient
+      if (c.game_particle_color) this.gamePColor = c.game_particle_color
     }
   },
 
   mounted() {
     window.addEventListener("scroll", this.scrollToTop)
+    window.addEventListener("wheel", this.onWheel, { passive: false })
     this.$nextTick(() => {
       if (this.$refs.banner) this.bannerH = this.$refs.banner.$el.offsetHeight
     })
+    // 打字效果
+    this.typeBio()
+    // 滚动揭示
+    this.setupRevealObserver()
   },
-  destroyed() { window.removeEventListener("scroll", this.scrollToTop) },
+
+  destroyed() {
+    window.removeEventListener("scroll", this.scrollToTop)
+    window.removeEventListener("wheel", this.onWheel)
+    if (this.observer) this.observer.disconnect()
+  },
 
   methods: {
+    // ====== GitHub 加载 ======
     async loadGitHub() {
       this.ghLoading = true
       try {
@@ -224,27 +261,119 @@ export default {
           getUser(name), getReposCached(name), getEventsCached(name),
         ])
         this.ghUser = user; this.ghRepos = repos; this.ghEvents = events
+        await this.$nextTick()
+        this.animateStats()
       } catch (err) {
-        console.warn('[FirstView] GitHub 数据加载失败:', err.message)
+        console.warn('[FirstView] GitHub:', err.message)
       } finally { this.ghLoading = false }
     },
 
-    langColor(name) { return LANG_COLORS[name] || '#858585' },
+    // ====== 计数动画 ======
+    animateStats() {
+      this.statCards.forEach((s, i) => {
+        const target = s.value
+        if (!target) return
+        const key = s.label
+        let current = 0
+        const duration = 1200 + i * 200
+        const step = Math.max(1, Math.floor(target / (duration / 16)))
+        const timer = setInterval(() => {
+          current = Math.min(current + step, target)
+          this.$set(this.animated, key, current.toLocaleString())
+          if (current >= target) clearInterval(timer)
+        }, 16)
+      })
+    },
+
+    // ====== 打字效果 ======
+    typeBio() {
+      const text = this.sidebarBio || this.ghUser?.bio || 'Welcome to my page!'
+      let i = 0
+      const timer = setInterval(() => {
+        this.displayedBio = text.slice(0, i)
+        i++
+        if (i > text.length) clearInterval(timer)
+      }, 60)
+    },
+
+    // ====== 3D 倾斜 ======
+    onTilt(e) {
+      const card = e.currentTarget
+      const rect = card.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      const mx = (x / rect.width - 0.5) * 10
+      const my = (y / rect.height - 0.5) * -10
+      card.style.transform = `perspective(600px) rotateX(${my}deg) rotateY(${mx}deg) scale3d(1.02,1.02,1.02)`
+    },
+    offTilt(e) {
+      e.currentTarget.style.transform = ''
+    },
+
+    // ====== 滚动揭示 ======
+    setupRevealObserver() {
+      this.observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('revealed')
+          }
+        })
+      }, { threshold: 0.15 })
+
+      this.$nextTick(() => {
+        document.querySelectorAll('.reveal-section').forEach(el => {
+          this.observer.observe(el)
+        })
+      })
+    },
+
+    // ====== 隐藏游戏 ======
+    onWheel(e) {
+      if (this.gameActive || window.scrollY > 5) return
+
+      // 只处理向上滚动
+      if (e.deltaY >= 0) { this.overscroll *= 0.9; return }
+
+      this.overscroll += Math.abs(e.deltaY) * 0.8
+
+      // 弹簧阻尼: 越拉越难拉，松手缓慢回弹
+      if (this.overscroll < THRESHOLD) {
+        // 传给页面一个视觉提示（下拉阻力感）
+        e.preventDefault()
+      } else {
+        // 超过阈值 → 触发游戏
+        this.activateGame()
+      }
+    },
+
+    activateGame() {
+      this.overscroll = 0
+      this.gameActive = true
+      document.body.style.overflow = 'hidden'
+    },
+
+    closeGame() {
+      this.gameActive = false
+      document.body.style.overflow = ''
+    },
+
+    // ====== 工具 ======
+    langColor(n) { return LANG_COLORS[n] || '#858585' },
     formatJoinDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN',{year:'numeric',month:'long'}) : '' },
     openUrl(url) { window.open(url, '_blank') },
 
     backTop() {
       const that = this
       let timer = setInterval(() => {
-        let ispeed = Math.floor(-that.scrollTop / 5)
-        document.documentElement.scrollTop = document.body.scrollTop = that.scrollTop + ispeed
+        let s = Math.floor(-that.scrollTop / 5)
+        document.documentElement.scrollTop = document.body.scrollTop = that.scrollTop + s
         if (that.scrollTop === 0) clearInterval(timer)
       }, 16)
     },
     scrollToTop() {
-      let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
-      this.scrollTop = scrollTop
-      this.locked = this.btnFlag = scrollTop > this.bannerH
+      let st = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+      this.scrollTop = st
+      this.locked = this.btnFlag = st > this.bannerH
     },
   },
 }

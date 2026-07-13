@@ -1,6 +1,5 @@
 <template>
   <div class="aboutBox" :style="pageBgStyle">
-    <!-- 触发进度指示器（上滚时在顶部出现微光线） -->
     <div class="trigger-indicator" :class="{ active: triggerProgress > 0 }">
       <div class="trigger-glow" :style="{ width: triggerProgress * 100 + '%', opacity: triggerProgress }"></div>
     </div>
@@ -8,93 +7,109 @@
     <bannerView :imgUrl="bannerImage" :titleName="title" height="45vh" ref="banner" />
 
     <div class="mainBox">
-      <!-- ====== 主内容区 ====== -->
       <div class="contentBox">
         <!-- 加载骨架 -->
-        <div v-if="ghLoading">
-          <div class="skeleton-grid">
-            <div class="skel-card" v-for="n in 4" :key="n">
-              <div class="skel-bar w60"></div><div class="skel-bar w40 skel-bar-short"></div>
-            </div>
-          </div>
+        <div v-if="ghLoading" class="skeleton-grid">
+          <div class="skel-card" v-for="n in 4" :key="n"><div class="skel-bar w60"></div><div class="skel-bar w40 skel-bar-short"></div></div>
         </div>
 
         <template v-else-if="ghUser">
-          <!-- ====== 统计卡片（计数动画） ====== -->
+          <!-- ====== 个人名片 ====== -->
+          <div class="profile-card glass reveal-section">
+            <div class="profile-avatar">
+              <img :src="ghUser.avatar_url" class="profile-avatar-img" alt="avatar" />
+            </div>
+            <div class="profile-info">
+              <h2 class="profile-name">{{ ghUser.name || ghUser.login }}</h2>
+              <p class="profile-bio">{{ ghUser.bio || 'A developer on GitHub' }}</p>
+              <div class="profile-tags">
+                <span v-if="ghUser.location" class="profile-tag">📍 {{ ghUser.location }}</span>
+                <span v-if="ghUser.company" class="profile-tag">🏢 {{ ghUser.company }}</span>
+                <span class="profile-tag">📅 Joined {{ formatJoinDate(ghUser.created_at) }}</span>
+                <a :href="ghUser.blog" v-if="ghUser.blog" target="_blank" class="profile-tag link">🔗 {{ ghUser.blog.replace(/^https?:\/\//,'') }}</a>
+              </div>
+            </div>
+            <div class="profile-follow">
+              <div class="follow-item"><span class="follow-num">{{ ghUser.followers }}</span><span class="follow-lbl">followers</span></div>
+              <div class="follow-item"><span class="follow-num">{{ ghUser.following }}</span><span class="follow-lbl">following</span></div>
+            </div>
+          </div>
+
+          <!-- ====== 统计卡片 ====== -->
           <div class="stats-row" ref="statsRow">
             <div class="stat-card tilt-card" v-for="s in statCards" :key="s.label"
               @mousemove="onTilt($event)" @mouseleave="offTilt($event)">
               <div class="stat-icon">{{ s.icon }}</div>
-              <div class="stat-num" ref="statNums">{{ animated[s.label] || 0 }}</div>
+              <div class="stat-num">{{ animated[s.label] || 0 }}</div>
               <div class="stat-label">{{ s.label }}</div>
             </div>
           </div>
 
-          <!-- ====== 两栏: 技术栈 + 项目 ====== -->
+          <!-- ====== 两栏: 技术栈 + 活动 ====== -->
           <div class="two-col">
             <!-- 技术栈 -->
-            <div class="panel glass reveal-section" ref="revealEls">
-              <div class="panel-head">🛠️ 技术栈</div>
+            <div class="panel glass reveal-section">
+              <div class="panel-head">🛠️ Tech Stack</div>
               <div class="lang-bars" v-if="languages.length">
                 <div class="lang-bar" v-for="(l, i) in languages" :key="l.name"
                   :style="{ animationDelay: i * 0.08 + 's' }">
                   <div class="lang-info">
-                    <span class="lang-name">● {{ l.name }}</span>
-                    <span class="lang-pct">{{ l.percent }}% · {{ l.count }} repos</span>
+                    <span class="lang-name"><span class="lang-dot-sm" :style="{ background: l.color }"></span>{{ l.name }}</span>
+                    <span class="lang-pct">{{ l.percent }}%</span>
                   </div>
                   <div class="lang-track">
-                    <div class="lang-fill" :style="{ width: l.percent + '%', background: l.color }"></div>
+                    <div class="lang-fill" :style="{ width: l.percent + '%', background: l.color, boxShadow: '0 0 8px ' + l.color }"></div>
                   </div>
                 </div>
               </div>
               <div v-else class="empty-note">暂无数据</div>
             </div>
 
-            <!-- 精选项目（3D 倾斜卡片） -->
-            <div class="panel glass reveal-section" ref="revealEls">
-              <div class="panel-head">📌 精选项目</div>
-              <div class="project-list" v-if="topProjects.length">
-                <div class="proj-item tilt-card" v-for="p in topProjects" :key="p.id"
-                  @click="openUrl(p.html_url)" @mousemove="onTilt($event)" @mouseleave="offTilt($event)">
-                  <div class="proj-top">
-                    <span class="proj-name">📁 {{ p.name }}</span>
-                    <span class="proj-stars">⭐ {{ p.stargazers_count }}</span>
+            <!-- 最近活动 -->
+            <div class="panel glass reveal-section">
+              <div class="panel-head">📡 Recent Activity</div>
+              <div class="activity-list" v-if="activities.length">
+                <div class="act-item" v-for="(a, i) in activities.slice(0, 8)" :key="i"
+                  :style="{ animationDelay: i * 0.04 + 's' }">
+                  <span class="act-dot" :class="{ pulse: i < 3 }"></span>
+                  <span class="act-icon">{{ a.icon }}</span>
+                  <span class="act-text"><span class="act-verb">{{ a.verb }}</span> <span class="act-repo">{{ a.repo }}</span></span>
+                  <span class="act-time">{{ a.timeAgo }}</span>
+                </div>
+              </div>
+              <div v-else class="empty-note">暂无动态</div>
+            </div>
+          </div>
+
+          <!-- ====== 精选项目（3 张卡片 + 展开详情） ====== -->
+          <div class="panel glass reveal-section">
+            <div class="panel-head">📌 Featured Projects · 最近更新</div>
+            <div class="featured-grid" v-if="featuredProjects.length">
+              <div class="feat-card tilt-card" v-for="p in featuredProjects" :key="p.id"
+                @click="openUrl(p.html_url)" @mousemove="onTilt($event)" @mouseleave="offTilt($event)">
+                <div class="feat-top-bar" :style="{ background: langColor(p.language) }"></div>
+                <div class="feat-body">
+                  <h4 class="feat-name">{{ p.name }}</h4>
+                  <p class="feat-desc">{{ p.description || 'No description' }}</p>
+                  <div class="feat-meta">
+                    <span v-if="p.language"><i class="lang-dot" :style="{ background: langColor(p.language) }"></i>{{ p.language }}</span>
+                    <span>⭐ {{ p.stargazers_count }}</span>
+                    <span>🍴 {{ p.forks_count }}</span>
                   </div>
-                  <div class="proj-desc" v-if="p.description">{{ p.description }}</div>
-                  <div class="proj-meta">
-                    <span v-if="p.language" class="proj-lang">
-                      <i class="lang-dot" :style="{ background: langColor(p.language) }"></i>
-                      {{ p.language }}
+                  <div class="feat-footer">
+                    <span class="feat-updated">🕐 {{ formatDate(p.updated_at) }}</span>
+                    <span v-if="p.topics && p.topics.length" class="feat-topics">
+                      <span class="topic-tag" v-for="t in p.topics.slice(0,3)" :key="t">{{ t }}</span>
                     </span>
-                    <span v-if="p.forks_count">🍴 {{ p.forks_count }}</span>
-                    <span v-if="p.open_issues_count">⚠️ {{ p.open_issues_count }}</span>
                   </div>
                 </div>
               </div>
-              <div v-else class="empty-note">暂无项目</div>
             </div>
-          </div>
-
-          <!-- ====== 最近动态（交互时间线） ====== -->
-          <div class="panel glass reveal-section" ref="revealEls">
-            <div class="panel-head">📅 最近动态</div>
-            <div class="activity-list" v-if="activities.length">
-              <div class="act-item" v-for="(a, i) in activities" :key="i"
-                :style="{ animationDelay: i * 0.04 + 's' }"
-                @mouseenter="a._hover = true" @mouseleave="a._hover = false">
-                <span class="act-dot" :class="{ pulse: i < 3 }"></span>
-                <span class="act-icon">{{ a.icon }}</span>
-                <span class="act-verb">{{ a.verb }}</span>
-                <span class="act-repo">{{ a.repo }}</span>
-                <span class="act-time">{{ a.timeAgo }}</span>
-              </div>
-            </div>
-            <div v-else class="empty-note">暂无动态</div>
+            <div v-else class="empty-note">暂无项目</div>
           </div>
         </template>
 
-        <!-- Markdown 回退 -->
-        <div v-else-if="markdownContent" class="contentTitle reveal-section" ref="revealEls">
+        <div v-else-if="markdownContent" class="contentTitle reveal-section">
           <div class="markdown-body"><VueMarkdown :source="markdownContent" /></div>
         </div>
       </div>
@@ -111,13 +126,12 @@
         <el-divider>{{ sidebarDivider }}</el-divider>
         <div v-if="ghUser" class="aside-extra">
           <div v-if="ghUser.location" class="aside-row">📍 {{ ghUser.location }}</div>
-          <div v-if="ghUser.company" class="aside-row">🏢 {{ ghUser.company }}</div>
-          <div class="aside-row">📅 Joined {{ formatJoinDate(ghUser.created_at) }}</div>
+          <div class="aside-row">📦 {{ ghUser.public_repos }} public repos</div>
+          <div class="aside-row">⭐ {{ totalStars }} total stars</div>
         </div>
         <img v-if="sidebarBottomImg" :src="sidebarBottomImg" alt="" class="bottomImg" />
       </div>
 
-      <!-- 返回顶部 -->
       <div v-if="backtopVisible && btnFlag" class="go-top" @click="backTop">
         <img :src="backtopIcon || require('@/assets/backTop.png')" alt="" class="backTopbtn" />
       </div>
@@ -125,15 +139,9 @@
 
     <footerView />
 
-    <!-- ====== 隐藏粒子游戏 ====== -->
     <transition name="game-reveal">
-      <GravityShepherd
-        v-if="gameActive"
-        :bgImage="gameBgImage"
-        :gradient="gameGradient"
-        :particleColor="gamePColor"
-        @close="closeGame"
-      />
+      <GravityShepherd v-if="gameActive" :bgImage="gameBgImage" :gradient="gameGradient"
+        :particleColor="gamePColor" @close="closeGame" />
     </transition>
   </div>
 </template>
@@ -149,11 +157,9 @@ import "./css/FirstView.scss"
 import "highlight.js/styles/github.css"
 import "github-markdown-css"
 
-// 隐藏游戏懒加载
 const GravityShepherd = () => import('@/views/public/GravityShepherd.vue')
-
-const TRIGGER_COUNT = 8    // 连续上滚 8 次触发
-const DECAY_MS = 400       // 400ms 内没有下一次上滚则计数归零
+const TRIGGER_COUNT = 8
+const DECAY_MS = 400
 
 const LANG_COLORS = {
   JavaScript:'#f1e05a', TypeScript:'#3178c6', Vue:'#41b883', Python:'#3572A5',
@@ -177,19 +183,10 @@ export default {
       markdownContent: markdownRaw,
       ghUsername: 'Aloudname',
       ghLoading: true, ghUser: null, ghRepos: [], ghEvents: [],
-      // 交互状态
-      animated: {},
-      displayedBio: '',
-      observer: null,
-      // 隐藏游戏
-      gameActive: false,
-      scrollCount: 0,        // 连续上滚计数
-      lastScrollTime: 0,     // 上次上滚时间戳
-      scrollDecayTimer: null, // 衰减定时器
-      triggerProgress: 0,    // 0-1 触发进度（用于视觉提示）
-      gameBgImage: '',
-      gameGradient: ['#1a1a2e', '#0f3460'],
-      gamePColor: '#00ff88',
+      animated: {}, displayedBio: '', observer: null,
+      gameActive: false, scrollCount: 0, lastScrollTime: 0,
+      scrollDecayTimer: null, triggerProgress: 0,
+      gameBgImage: '', gameGradient: ['#1a1a2e', '#0f3460'], gamePColor: '#00ff88',
     }
   },
 
@@ -200,6 +197,10 @@ export default {
     },
     languages() { return calcLanguages(this.ghRepos) },
     topProjects() { return getTopProjects(this.ghRepos) },
+    featuredProjects() {
+      // 最近更新的 3 个非 fork 项目
+      return this.ghRepos.filter(r => !r.fork).sort((a,b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0,3)
+    },
     activities() { return parseEvents(this.ghEvents) },
     totalStars() { return calcTotalStars(this.ghRepos) },
     statCards() {
@@ -214,10 +215,7 @@ export default {
   },
 
   async created() {
-    const [cfg] = await Promise.allSettled([
-      getSectionConfig('about'),
-      this.loadGitHub(),
-    ])
+    const [cfg] = await Promise.allSettled([getSectionConfig('about'), this.loadGitHub()])
     if (cfg.status === 'fulfilled' && cfg.value) {
       const c = cfg.value
       if (c.banner_image) this.bannerImage = c.banner_image
@@ -235,7 +233,6 @@ export default {
       if (c.backtop_icon) this.backtopIcon = c.backtop_icon
       if (c.markdown_content) this.markdownContent = c.markdown_content
       if (c.gh_username) this.ghUsername = c.gh_username
-      // 游戏配置
       if (c.game_bg_image) this.gameBgImage = c.game_bg_image
       if (c.game_gradient) this.gameGradient = c.game_gradient
       if (c.game_particle_color) this.gamePColor = c.game_particle_color
@@ -245,15 +242,9 @@ export default {
   mounted() {
     window.addEventListener("scroll", this.scrollToTop)
     window.addEventListener("wheel", this.onWheel, { passive: false })
-    this.$nextTick(() => {
-      if (this.$refs.banner) this.bannerH = this.$refs.banner.$el.offsetHeight
-    })
-    // 打字效果
-    this.typeBio()
-    // 滚动揭示
-    this.setupRevealObserver()
+    this.$nextTick(() => { if (this.$refs.banner) this.bannerH = this.$refs.banner.$el.offsetHeight })
+    this.typeBio(); this.setupRevealObserver()
   },
-
   destroyed() {
     window.removeEventListener("scroll", this.scrollToTop)
     window.removeEventListener("wheel", this.onWheel)
@@ -261,7 +252,6 @@ export default {
   },
 
   methods: {
-    // ====== GitHub 加载 ======
     async loadGitHub() {
       this.ghLoading = true
       try {
@@ -270,140 +260,73 @@ export default {
           getUser(name), getReposCached(name), getEventsCached(name),
         ])
         this.ghUser = user; this.ghRepos = repos; this.ghEvents = events
-        await this.$nextTick()
-        this.animateStats()
-      } catch (err) {
-        console.warn('[FirstView] GitHub:', err.message)
-      } finally { this.ghLoading = false }
+        await this.$nextTick(); this.animateStats()
+      } catch (err) { console.warn('[FirstView] GitHub:', err.message) }
+      finally { this.ghLoading = false }
     },
 
-    // ====== 计数动画 ======
     animateStats() {
       this.statCards.forEach((s, i) => {
         const target = s.value
         if (!target) return
-        const key = s.label
         let current = 0
         const duration = 1200 + i * 200
         const step = Math.max(1, Math.floor(target / (duration / 16)))
         const timer = setInterval(() => {
           current = Math.min(current + step, target)
-          this.$set(this.animated, key, current.toLocaleString())
+          this.$set(this.animated, s.label, current.toLocaleString())
           if (current >= target) clearInterval(timer)
         }, 16)
       })
     },
 
-    // ====== 打字效果 ======
     typeBio() {
       const text = this.sidebarBio || this.ghUser?.bio || 'Welcome to my page!'
       let i = 0
-      const timer = setInterval(() => {
-        this.displayedBio = text.slice(0, i)
-        i++
-        if (i > text.length) clearInterval(timer)
-      }, 60)
+      const timer = setInterval(() => { this.displayedBio = text.slice(0, i); i++; if (i > text.length) clearInterval(timer) }, 60)
     },
 
-    // ====== 3D 倾斜 ======
     onTilt(e) {
-      const card = e.currentTarget
-      const rect = card.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-      const mx = (x / rect.width - 0.5) * 10
-      const my = (y / rect.height - 0.5) * -10
+      const card = e.currentTarget; const rect = card.getBoundingClientRect()
+      const x = e.clientX - rect.left, y = e.clientY - rect.top
+      const mx = (x / rect.width - 0.5) * 10, my = (y / rect.height - 0.5) * -10
       card.style.transform = `perspective(600px) rotateX(${my}deg) rotateY(${mx}deg) scale3d(1.02,1.02,1.02)`
     },
-    offTilt(e) {
-      e.currentTarget.style.transform = ''
-    },
+    offTilt(e) { e.currentTarget.style.transform = '' },
 
-    // ====== 滚动揭示 ======
     setupRevealObserver() {
       this.observer = new IntersectionObserver((entries) => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            e.target.classList.add('revealed')
-          }
-        })
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed') })
       }, { threshold: 0.15 })
-
-      this.$nextTick(() => {
-        document.querySelectorAll('.reveal-section').forEach(el => {
-          this.observer.observe(el)
-        })
-      })
+      this.$nextTick(() => { document.querySelectorAll('.reveal-section').forEach(el => this.observer.observe(el)) })
     },
 
-    // ====== 隐藏游戏：连续上滚触发 ======
+    // 游戏触发
     onWheel(e) {
-      if (this.gameActive) return
-      // 仅在页面顶部时响应上滚触发（允许少量偏移）
-      if (window.scrollY > 15) return
-
-      // 向下滚不重置（避免触控板抖动误杀），仅忽略
+      if (this.gameActive || window.scrollY > 15) return
       if (e.deltaY >= 0) return
-
-      // 向上滚 → 计数+1
-      e.preventDefault()
-      const now = Date.now()
-
-      // 超过衰减窗口 → 重新计数
-      if (this.lastScrollTime && now - this.lastScrollTime > DECAY_MS) {
-        this.scrollCount = 0
-      }
-
-      this.scrollCount++
-      this.lastScrollTime = now
+      e.preventDefault(); const now = Date.now()
+      if (this.lastScrollTime && now - this.lastScrollTime > DECAY_MS) this.scrollCount = 0
+      this.scrollCount++; this.lastScrollTime = now
       this.triggerProgress = Math.min(1, this.scrollCount / TRIGGER_COUNT)
-
-      // 重置衰减定时器
       clearTimeout(this.scrollDecayTimer)
-      this.scrollDecayTimer = setTimeout(() => {
-        this.resetScrollCount()
-      }, DECAY_MS)
-
-      if (this.scrollCount >= TRIGGER_COUNT) {
-        this.activateGame()
-      }
+      this.scrollDecayTimer = setTimeout(() => { this.scrollCount = 0; this.triggerProgress = 0 }, DECAY_MS)
+      if (this.scrollCount >= TRIGGER_COUNT) { this.scrollCount = 0; this.triggerProgress = 0; this.gameActive = true; document.body.style.overflow = 'hidden' }
     },
+    closeGame() { this.gameActive = false; document.body.style.overflow = '' },
 
-    resetScrollCount() {
-      this.scrollCount = 0
-      this.lastScrollTime = 0
-      this.triggerProgress = 0
-      clearTimeout(this.scrollDecayTimer)
-    },
-
-    activateGame() {
-      this.resetScrollCount()
-      this.gameActive = true
-      document.body.style.overflow = 'hidden'
-    },
-
-    closeGame() {
-      this.gameActive = false
-      document.body.style.overflow = ''
-    },
-
-    // ====== 工具 ======
     langColor(n) { return LANG_COLORS[n] || '#858585' },
     formatJoinDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN',{year:'numeric',month:'long'}) : '' },
+    formatDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN',{month:'short',day:'numeric'}) : '' },
     openUrl(url) { window.open(url, '_blank') },
 
     backTop() {
       const that = this
-      let timer = setInterval(() => {
-        let s = Math.floor(-that.scrollTop / 5)
-        document.documentElement.scrollTop = document.body.scrollTop = that.scrollTop + s
-        if (that.scrollTop === 0) clearInterval(timer)
-      }, 16)
+      let timer = setInterval(() => { let s = Math.floor(-that.scrollTop / 5); document.documentElement.scrollTop = document.body.scrollTop = that.scrollTop + s; if (that.scrollTop === 0) clearInterval(timer) }, 16)
     },
     scrollToTop() {
       let st = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
-      this.scrollTop = st
-      this.locked = this.btnFlag = st > this.bannerH
+      this.scrollTop = st; this.locked = this.btnFlag = st > this.bannerH
     },
   },
 }

@@ -46,7 +46,7 @@ export default {
       mouse: { x: -999, y: -999, active: false },
       animId: null, ctx: null, W: 0, H: 0,
       elapsed: 0, lastT: 0, spawnAcc: 0,
-      scorePopups: [], gameOver: false, resetT: 0,
+      gameOver: false, resetT: 0,
     }
   },
 
@@ -55,10 +55,10 @@ export default {
       const c = this.gradient.filter(Boolean)
       return c.length >= 2 ? { background: `linear-gradient(135deg, ${c.join(',')})`, opacity: 0.55 } : {}
     },
-    avgSpd()  { return Math.min(2.5 + Math.log(1 + this.score) * 1.2, 10) },
+    avgSpd()  { return Math.min(2.5 + Math.log(1 + this.score) * 0.8, 8) },
     spnRate() { return Math.min(1.5 + Math.log(1 + this.score) * 0.5, 5) },
-    rAmp()    { return Math.min(0.25 + Math.log(1 + this.score) * 0.035, 0.42) },
-    rSpd()    { return Math.min(0.7  + Math.log(1 + this.score) * 0.35, 2.8) },
+    rAmp()    { return Math.min(0.18 + Math.log(1 + this.score) * 0.02, 0.3) },
+    rSpd()    { return Math.min(0.3  + Math.log(1 + this.score) * 0.15, 1.2) },
     stabColor() {
       if (this.stability > 60) return '#42b983'
       if (this.stability > 30) return '#e6a23c'
@@ -122,7 +122,7 @@ export default {
       }
 
       // ---- 生成粒子 ----
-      const MAX = 24
+      const MAX = 32
       this.spawnAcc += dt
       const ival = 1 / this.spnRate
       while (this.spawnAcc > ival && this.particles.length < MAX) {
@@ -193,15 +193,6 @@ export default {
       if (capped) { this.combo++; this.comboTimer = 1.5 }
       else { this.comboTimer -= dt; if (this.comboTimer <= 0) this.combo = 0 }
 
-      // 飘字
-      for (let i = this.scorePopups.length - 1; i >= 0; i--) {
-        const pp = this.scorePopups[i]
-        pp.y -= 1.2; pp.life -= dt
-        if (pp.life <= 0) { this.scorePopups.splice(i, 1); continue }
-        ctx.fillStyle = '#fff'; ctx.globalAlpha = pp.life
-        ctx.font = 'bold 16px monospace'; ctx.fillText('+1', pp.x, pp.y)
-      }
-
       ctx.globalAlpha = 1
       this.animId = requestAnimationFrame(t => this.loop(t))
     },
@@ -239,15 +230,10 @@ export default {
     },
 
     // ====== 捕获 ======
-    doCapture(i, p) {
-      for (let b = 0; b < 8; b++) {
-        const a = (Math.PI * 2 * b) / 8
-        this.particles.push({ x: p.x, y: p.y, vx: Math.cos(a) * 4, vy: Math.sin(a) * 4, trail: [] })
-      }
+    doCapture(i) {
       this.particles.splice(i, 1)
       this.score++
-      this.stability = Math.min(100, this.stability + 1)
-      this.scorePopups.push({ x: p.x, y: p.y, life: 0.8 })
+      this.stability = Math.min(100, this.stability + 2)
     },
 
     // ====== 结束/重置 ======

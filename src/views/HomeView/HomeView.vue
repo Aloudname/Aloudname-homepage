@@ -220,6 +220,7 @@ export default {
     getSocialIcon(link) {
       if (link.platform === 'QQ') return require('@/assets/QQ.png')
       if (link.platform === 'GitHub') return require('@/assets/github.png')
+      if (link.platform === 'HuggingFace') return require('@/assets/HuggingFace.png')
       return link.icon || ''
     },
 

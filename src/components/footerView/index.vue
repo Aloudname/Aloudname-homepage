@@ -11,8 +11,8 @@
 <template>
   <div>
     <div class="footerBox">
-      © 2024 版权所有<br />
-      已运行 {{ day }}天 {{ h }}小时 {{ min }}分钟 {{ sec }}秒<br />
+      Aloudname homepage<br />
+      © bean-chai 2024 版权所有<br />
       Powered by Vue & Supabase<br />
       开源协议 MIT License
     </div>
@@ -20,8 +20,7 @@
 </template>
 
 
-
-<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<!-- <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 <script>
 export default {
   name: "footerView",
@@ -60,7 +59,7 @@ export default {
     },
   },
 };
-</script>
+</script> -->
 
 <style>
 .footerBox {

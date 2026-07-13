@@ -258,7 +258,7 @@ export default {
     // ====== 结束/重置 ======
     triggerOver() { this.gameOver = true; this.resetT = 3 },
     doReset() {
-      this.score = 0; this.stability = 100; this.combo = 0
+      this.score = 0; this.stability = 20; this.combo = 0
       this.particles = []; this.spawnAcc = 0
       this.gameOver = false; this.resetT = 0
     },

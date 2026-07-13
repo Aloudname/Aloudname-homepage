@@ -4,10 +4,18 @@
     <div class="game-gradient" :style="gradientStyle"></div>
     <canvas ref="canvas" class="game-canvas"></canvas>
 
+    <!-- 容器：被鼠标引力牵引的猫 -->
+    <img
+      ref="cat"
+      :src="catSrc"
+      class="game-cat"
+      :style="{ left: ring.x + 'px', top: ring.y + 'px', transform: 'translate(-50%,-50%) rotate(' + ring.angle + 'rad)' }"
+    />
+
     <div class="game-ui">
       <div class="game-score">{{ score }}</div>
       <div class="game-combo" v-if="combo >= 3">🔥 x{{ combo }}</div>
-      <div class="game-hint">🧲 鼠标引力 → 投入光环</div>
+      <div class="game-hint">🧲 鼠标引力 → 喂给小猫</div>
     </div>
 
     <div class="stability-bar">
@@ -42,7 +50,9 @@ export default {
     return {
       score: 0, stability: 100, combo: 0, comboTimer: 0,
       particles: [],
-      ring: { x: 0, y: 0, phase: 0, r: 32 },
+      catSrc: require('@/assets/capooeat.gif'),
+      // 容器（猫）：位置 + 速度（惯性）+ 旋转角度
+      ring: { x: 0, y: 0, vx: 0, vy: 0, angle: 0, targetAngle: 0, r: 40 },
       mouse: { x: -999, y: -999, active: false },
       animId: null, ctx: null, W: 0, H: 0,
       elapsed: 0, lastT: 0, spawnAcc: 0,
@@ -57,8 +67,7 @@ export default {
     },
     avgSpd()  { return Math.min(2.5 + Math.log(1 + this.score) * 0.8, 8) },
     spnRate() { return Math.min(1.5 + Math.log(1 + this.score) * 0.5, 5) },
-    rAmp()    { return Math.min(0.18 + Math.log(1 + this.score) * 0.02, 0.3) },
-    rSpd()    { return Math.min(0.3  + Math.log(1 + this.score) * 0.15, 1.2) },
+    catMass() { return 8 },  // 容器质量大 → 惯性大，不容易被鼠标甩飞
     stabColor() {
       if (this.stability > 60) return '#42b983'
       if (this.stability > 30) return '#e6a23c'
@@ -130,18 +139,42 @@ export default {
         this.spawnAcc -= ival
       }
 
-      // ---- Lissajous 环 ----
-      this.ring.phase += this.rSpd * dt
-      const ph = this.ring.phase
-      const amp = this.rAmp
-      this.ring.x = this.W / 2 + Math.sin(3 * ph + 0.7) * amp * this.W
-      this.ring.y = this.H / 2 + Math.cos(2 * ph)       * amp * this.H
-      this.drawRing(ctx)
+      // ---- 容器（猫）物理：鼠标引力 + 惯性 + 边界约束 ----
+      const catM = this.catMass
+      if (m.active) {
+        const dx = m.x - this.ring.x, dy = m.y - this.ring.y
+        const d = Math.sqrt(dx * dx + dy * dy)
+        if (d > 1) {
+          const F = (gS * catM * this.cursorMass) / Math.max(d, 20)
+          this.ring.vx += (dx / d) * F / catM
+          this.ring.vy += (dy / d) * F / catM
+        }
+        // 容器旋转目标：舌头（图像的左边）指向鼠标
+        this.ring.targetAngle = Math.atan2(dy, dx) + Math.PI
+      }
+      // 容器惯性 + 阻尼
+      this.ring.x += this.ring.vx * dt
+      this.ring.y += this.ring.vy * dt
+      this.ring.vx *= 0.96
+      this.ring.vy *= 0.96
+      // 边界约束
+      const mrg = this.ring.r + 10
+      if (this.ring.x < mrg)      { this.ring.x = mrg;      this.ring.vx =  Math.abs(this.ring.vx) * 0.5 }
+      if (this.ring.x > this.W - mrg) { this.ring.x = this.W - mrg; this.ring.vx = -Math.abs(this.ring.vx) * 0.5 }
+      if (this.ring.y < mrg)      { this.ring.y = mrg;      this.ring.vy =  Math.abs(this.ring.vy) * 0.5 }
+      if (this.ring.y > this.H - mrg) { this.ring.y = this.H - mrg; this.ring.vy = -Math.abs(this.ring.vy) * 0.5 }
+      // 旋转惯性平滑
+      let aDiff = this.ring.targetAngle - this.ring.angle
+      while (aDiff >  Math.PI) aDiff -= Math.PI * 2
+      while (aDiff < -Math.PI) aDiff += Math.PI * 2
+      this.ring.angle += aDiff * Math.min(dt * 8, 1)
+
+      // ---- 鼠标 ----
+      const m = this.mouse
+      const gS = this.gravityStrength
 
       // ---- 粒子物理 ----
-      const m = this.mouse
       const gR = this.gravityRange
-      const gS = this.gravityStrength
       const cM = this.cursorMass
       const pM = this.particleMass
       const pSz = 5
@@ -197,23 +230,6 @@ export default {
       this.animId = requestAnimationFrame(t => this.loop(t))
     },
 
-    // ====== 绘制环 ======
-    drawRing(ctx) {
-      const { x, y, r } = this.ring
-      const g = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 1.8)
-      g.addColorStop(0, 'rgba(100,200,255,0.3)')
-      g.addColorStop(0.5, 'rgba(100,200,255,0.1)')
-      g.addColorStop(1, 'rgba(100,200,255,0)')
-      ctx.fillStyle = g
-      ctx.beginPath(); ctx.arc(x, y, r * 1.8, 0, Math.PI * 2); ctx.fill()
-
-      const pulse = 1 + Math.sin(this.elapsed * 3) * 0.06
-      ctx.strokeStyle = 'rgba(200,230,255,0.7)'; ctx.lineWidth = 2
-      ctx.setLineDash([8, 6])
-      ctx.beginPath(); ctx.arc(x, y, r * pulse, 0, Math.PI * 2); ctx.stroke()
-      ctx.setLineDash([])
-    },
-
     // ====== 粒子生成 ======
     makeParticle() {
       const s = Math.max(0.5, this.gauss(this.avgSpd, this.avgSpd * 0.3))
@@ -260,6 +276,11 @@ export default {
 .game-bg     { position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;opacity:0.3; }
 .game-gradient{position:absolute;top:0;left:0;width:100%;height:100%;}
 .game-canvas { position:absolute;top:0;left:0;width:100%;height:100%;z-index:1; }
+.game-cat {
+  position:absolute; z-index:2; width:70px; height:70px;
+  pointer-events:none;
+  transition: none;
+}
 .game-ui     { position:absolute;top:0;left:0;width:100%;z-index:5;pointer-events:none; }
 .game-score  { position:absolute;top:20px;right:28px;font-size:56px;font-weight:900;color:#fff;text-shadow:0 0 20px rgba(0,200,255,0.4); }
 .game-combo  { position:absolute;top:84px;right:28px;font-size:22px;font-weight:700;color:#ffa500;text-shadow:0 0 12px rgba(255,165,0,0.5); }

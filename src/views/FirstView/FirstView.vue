@@ -122,7 +122,7 @@
 
     <!-- ====== 隐藏粒子游戏 ====== -->
     <transition name="game-reveal">
-      <ParticleGame
+      <GravityShepherd
         v-if="gameActive"
         :bgImage="gameBgImage"
         :gradient="gameGradient"
@@ -145,9 +145,9 @@ import "highlight.js/styles/github.css"
 import "github-markdown-css"
 
 // 隐藏游戏懒加载
-const ParticleGame = () => import('@/views/public/ParticleGame.vue')
+const GravityShepherd = () => import('@/views/public/GravityShepherd.vue')
 
-const THRESHOLD = 150  // 上滚超过此值触发游戏
+const THRESHOLD = 420  // 上滚超过此值触发游戏（需要刻意连续上滚才能触发）
 
 const LANG_COLORS = {
   JavaScript:'#f1e05a', TypeScript:'#3178c6', Vue:'#41b883', Python:'#3572A5',
@@ -158,7 +158,7 @@ const LANG_COLORS = {
 
 export default {
   name: 'FirstView',
-  components: { bannerView, VueMarkdown, footerView, ParticleGame },
+  components: { bannerView, VueMarkdown, footerView, GravityShepherd },
 
   data() {
     return {
@@ -332,16 +332,21 @@ export default {
       if (this.gameActive || window.scrollY > 5) return
 
       // 只处理向上滚动
-      if (e.deltaY >= 0) { this.overscroll *= 0.9; return }
+      if (e.deltaY >= 0) {
+        this.overscroll *= 0.85  // 松手后快速回弹
+        return
+      }
 
-      this.overscroll += Math.abs(e.deltaY) * 0.8
+      // 累积上滚量（降低系数，需要更多滚轮次数）
+      this.overscroll += Math.abs(e.deltaY) * 0.5
 
-      // 弹簧阻尼: 越拉越难拉，松手缓慢回弹
+      // 弹簧阻尼: 越接近阈值阻力越大
       if (this.overscroll < THRESHOLD) {
-        // 传给页面一个视觉提示（下拉阻力感）
+        const progress = this.overscroll / THRESHOLD
+        const resistance = 0.3 + (1 - progress) * 0.7  // 进度 0→阻力 100%, 进度 0.9→阻力 37%
+        this.overscroll *= resistance
         e.preventDefault()
       } else {
-        // 超过阈值 → 触发游戏
         this.activateGame()
       }
     },

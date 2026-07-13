@@ -68,7 +68,7 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="empty-note">暂无数据</div>
+              <div v-else class="empty-note">暂无语言数据 ({{ ghRepos.length }} repos)</div>
             </div>
 
             <!-- 最近活动 -->
@@ -83,7 +83,7 @@
                   <span class="act-time">{{ a.timeAgo }}</span>
                 </div>
               </div>
-              <div v-else class="empty-note">暂无动态</div>
+              <div v-else class="empty-note">暂无动态 ({{ ghEvents.length }} events)</div>
             </div>
           </div>
 
@@ -111,7 +111,7 @@
                 </div>
               </div>
             </div>
-            <div v-else class="empty-note">暂无项目</div>
+            <div v-else class="empty-note">暂无项目 ({{ ghRepos.filter(r=>!r.fork).length }} non-fork repos)</div>
           </div>
         </template>
 

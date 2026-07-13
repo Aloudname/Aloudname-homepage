@@ -4,28 +4,49 @@
  */
 const API = 'https://api.github.com'
 
-async function fetchGH(path) {
-  const res = await fetch(API + path, {
-    headers: { Accept: 'application/vnd.github.v3+json' },
-  })
-  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`)
-  return res.json()
+// ===== 带超时的 fetch =====
+async function fetchGH(path, timeoutMs = 10000) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(API + path, {
+      headers: { Accept: 'application/vnd.github.v3+json' },
+      signal: controller.signal,
+    })
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`)
+    return res.json()
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
-// ===== localStorage 缓存层 (30min TTL) =====
+// ===== localStorage 缓存层 (30min TTL, 失败时用过期缓存兜底) =====
 const CACHE_TTL = 30 * 60 * 1000
 
 async function cached(key, fetcher) {
+  let staleData = null
   try {
     const raw = localStorage.getItem(key)
     if (raw) {
-      const { data, ts } = JSON.parse(raw)
-      if (Date.now() - ts < CACHE_TTL) return data
+      const parsed = JSON.parse(raw)
+      staleData = parsed.data  // 保留过期数据作为兜底
+      if (Date.now() - parsed.ts < CACHE_TTL) return parsed.data
     }
   } catch (_) { /* ignore corrupt cache */ }
-  const data = await fetcher()
-  try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })) } catch (_) {}
-  return data
+
+  // 尝试 2 次（含首次）
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const data = await fetcher()
+      try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })) } catch (_) {}
+      return data
+    } catch (err) {
+      if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue }
+      // 2 次都失败 → 用过期缓存兜底
+      if (staleData) return staleData
+      throw err
+    }
+  }
 }
 
 /** 获取用户资料 */

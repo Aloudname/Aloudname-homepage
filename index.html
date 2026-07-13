@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>blog3.0</title><style>[v-cloak] { display: none; }</style><script>(function() {
+      var BASE = '/Aloudname-homepage/';
+      var loc = location.pathname + location.search + location.hash;
+
+      // 判断当前是否在根路径
+      var isRoot = loc === BASE || loc === BASE.slice(0, -1);
+
+      if (!isRoot) {
+        // 来自 404 页面的深链接 → 存下路径，跳回根路径
+        sessionStorage.setItem('spa_restore', loc);
+        location.replace(BASE);
+      } else {
+        // 在根路径 → 检查是否需要恢复深链接
+        var saved = sessionStorage.getItem('spa_restore');
+        if (saved) {
+          sessionStorage.removeItem('spa_restore');
+          // 去掉 base 前缀得到 SPA 路由（如 /about）
+          var route = saved.replace(BASE, '/');
+          if (!route.startsWith('/')) route = '/' + route;
+          if (route !== '/') {
+            history.replaceState(null, '', route);
+          }
+        }
+      }
+    })();</script><script defer="defer" src="/Aloudname-homepage/js/chunk-vendors.764f8406.js"></script><script defer="defer" src="/Aloudname-homepage/js/app.0ae6d0d1.js"></script><link href="/Aloudname-homepage/css/chunk-vendors.133a751b.css" rel="stylesheet"><link href="/Aloudname-homepage/css/app.59375489.css" rel="stylesheet"></head><body><noscript><strong>请启用 JavaScript 以查看此页面。</strong></noscript><div id="app"></div></body></html>

@@ -13,7 +13,12 @@
     <div class="game-ui">
       <div class="game-score" ref="scoreEl">{{ score }}</div>
       <div class="game-hint">🎯 移动鼠标→粒子引力→投入容器</div>
-      <button class="game-close" @click="$emit('close')">✕ 关闭</button>
+    </div>
+
+    <!-- 底部 V 形返回提示 -->
+    <div class="game-back" @click="$emit('close')">
+      <span class="back-arrow">⌄</span>
+      <span class="back-text">向下滚动或点击此处返回</span>
     </div>
   </div>
 </template>
@@ -82,6 +87,7 @@ export default {
     this.lastTime = performance.now()
     document.addEventListener('mousemove', this.onMouseMove)
     document.addEventListener('mouseleave', this.onMouseLeave)
+    document.addEventListener('wheel', this.onWheel)
     this.loop(performance.now())
   },
 
@@ -89,6 +95,7 @@ export default {
     cancelAnimationFrame(this.animId)
     document.removeEventListener('mousemove', this.onMouseMove)
     document.removeEventListener('mouseleave', this.onMouseLeave)
+    document.removeEventListener('wheel', this.onWheel)
   },
 
   methods: {
@@ -107,6 +114,9 @@ export default {
       this.mouse.active = true
     },
     onMouseLeave() { this.mouse.active = false },
+    onWheel(e) {
+      if (e.deltaY > 0) this.$emit('close')
+    },
 
     // ====== 正态分布随机数 (Box-Muller) ======
     normalRandom(mean, stddev) {
@@ -322,13 +332,35 @@ export default {
   font-size: 14px; color: rgba(255,255,255,0.45);
   pointer-events: none;
 }
-.game-close {
-  position: absolute; top: 20px; left: 24px;
-  background: rgba(255,255,255,0.08); color: #fff;
-  border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
-  padding: 8px 16px; font-size: 14px; cursor: pointer;
+
+// 底部返回提示
+.game-back {
+  position: absolute; bottom: 0; left: 0; width: 100%;
+  z-index: 5;
+  text-align: center;
+  padding: 20px 0 28px;
+  cursor: pointer;
+  user-select: none;
   pointer-events: auto;
-  transition: background 0.2s;
-  &:hover { background: rgba(255,255,255,0.15); }
+  transition: opacity 0.3s;
+  &:hover { opacity: 0.6; }
+
+  .back-arrow {
+    display: block;
+    font-size: 36px;
+    color: rgba(255,255,255,0.4);
+    animation: bounceDown 1.8s ease-in-out infinite;
+    line-height: 1;
+  }
+  .back-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 4px;
+  }
+}
+
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50%      { transform: translateY(6px); opacity: 0.7; }
 }
 </style>

@@ -262,11 +262,11 @@ export default {
           getUser(name), getReposCached(name), getEventsCached(name),
         ])
         this.ghUser = user; this.ghRepos = repos; this.ghEvents = events
-        await this.$nextTick()
+        this.ghLoading = false  // 必须在 $nextTick 前关闭 loading，否则模板仍渲染骨架屏
+        await this.$nextTick()  // 此时 Vue 已渲染出 .reveal-section
         this.animateStats()
-        this.setupRevealObserver()  // 内容渲染后再注册 Observer
+        this.setupRevealObserver()
       } catch (err) { console.warn('[FirstView] GitHub:', err.message) }
-      finally { this.ghLoading = false }
     },
 
     animateStats() {

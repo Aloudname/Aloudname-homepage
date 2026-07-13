@@ -1,0 +1,10 @@
+// ====== 响应式断点 ======
+$bp-desktop: 1200px;
+$bp-tablet:  1024px;
+$bp-phone:   768px;
+$bp-small:   480px;
+
+@mixin desktop { @media (max-width: $bp-desktop) { @content; } }
+@mixin tablet  { @media (max-width: $bp-tablet)  { @content; } }
+@mixin phone   { @media (max-width: $bp-phone)   { @content; } }
+@mixin small   { @media (max-width: $bp-small)   { @content; } }

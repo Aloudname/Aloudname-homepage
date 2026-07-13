@@ -30,7 +30,7 @@
           <el-input v-model="settings.icp_number" placeholder="如: 滇ICP备2022000365号" />
         </el-form-item>
         <el-form-item label="版权文字">
-          <el-input v-model="settings.copyright_text" placeholder="© 2024 YourName 版权所有" />
+          <el-input v-model="settings.copyright_text" placeholder="©bean-chai 2024 版权所有" />
         </el-form-item>
         <el-form-item label="网站起始日">
           <el-date-picker

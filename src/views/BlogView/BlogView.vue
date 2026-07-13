@@ -1,6 +1,6 @@
 <template>
   <div class="aboutBox">
-    <bannerView :imgUrl="bannerImg" :titleName="'博客'"></bannerView>
+    <bannerView :imgUrl="bannerImg" :titleName="'博客'" height="55vh"></bannerView>
 
     <div class="mainBox">
       <!-- 加载中 -->
@@ -193,6 +193,17 @@ export default {
     margin: 0 auto;
     margin-top: 10px;
     min-height: 60vh;
+    @media (max-width: 1024px) { width: 85%; }
+    @media (max-width: 768px)  { width: 92%; }
+  }
+  .post-list {
+    @media (max-width: 768px) { padding: 24px 0; gap: 16px; }
+  }
+  .post-card-body {
+    @media (max-width: 768px) { padding: 14px 16px; }
+  }
+  .post-card-title {
+    @media (max-width: 768px) { font-size: 16px; }
   }
 }
 </style>

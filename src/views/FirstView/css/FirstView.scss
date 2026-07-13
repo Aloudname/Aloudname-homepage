@@ -42,10 +42,10 @@
 }
 
 .panel-head {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   letter-spacing: 1px;
 }
 
@@ -79,8 +79,8 @@
   }
 
   .stat-icon { font-size: 28px; margin-bottom: 8px; }
-  .stat-num { font-size: 28px; font-weight: 800; color: #fff; }
-  .stat-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .stat-num { font-size: 36px; font-weight: 800; color: #fff; }
+  .stat-label { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
 }
 
 // ====== 双栏布局 ======
@@ -104,7 +104,7 @@
     justify-content: space-between;
     font-size: 13px;
     margin-bottom: 4px;
-    .lang-name { color: #ccc; }
+    .lang-name { color: #ccc; font-size: 14px; }
     .lang-pct { color: rgba(255,255,255,0.4); }
   }
   .lang-track {
@@ -144,7 +144,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 4px;
-    .proj-name { font-size: 14px; font-weight: 600; color: #fff; }
+    .proj-name { font-size: 16px; font-weight: 600; color: #fff; }
     .proj-stars { font-size: 12px; color: #f0c040; }
   }
   .proj-desc {
@@ -185,7 +185,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 14px;
   padding: 8px 10px;
   border-radius: 8px;
   background: rgba(255,255,255,0.03);
@@ -324,4 +324,89 @@
     width: 24px;
     height: 24px;
   }
+}
+
+// ====== 响应式 ======
+@import '@/styles/mixins';
+
+@include tablet {
+  .mainBox { width: 88%; }
+  .asideBox, .asideBoxFix { width: 220px; }
+  .asideBoxFix { right: calc((100vw - 88vw) / 2 - 20px); }
+  .two-col { gap: 14px; }
+  .stats-row { gap: 10px; }
+  .stat-card { padding: 14px 10px; }
+  .stat-num { font-size: 28px; }
+  .stat-icon { font-size: 24px; }
+}
+
+@include phone {
+  .mainBox {
+    width: 94%;
+    flex-direction: column;
+    margin-top: -20px;
+  }
+  .two-col { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stat-num { font-size: 28px; }
+  .panel-head { font-size: 18px; }
+
+  .asideBox, .asideBoxFix {
+    width: 100%;
+    position: static !important;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    padding: 16px; text-align: left;
+    .asideImg { width: 70px; height: 70px; flex-shrink: 0; }
+    .asideTile { margin-top: 0; font-size: 16px; padding: 0; }
+    .asideTile1 { font-size: 12px; padding: 0; }
+    .aside-extra { display: none; }
+    .bottomImg { max-width: 100px; margin: 0 auto; display: none; }
+    .el-avatar--circle { width: 64px !important; height: 64px !important; }
+  }
+
+  .activity-list { max-height: 300px; }
+  .act-item { flex-wrap: wrap; font-size: 12px; }
+  .act-repo { max-width: 140px; }
+}
+
+@include small {
+  .mainBox { width: 98%; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 10px 8px; }
+  .stat-num { font-size: 24px; }
+  .stat-label { font-size: 11px; }
+  .glass { padding: 16px; }
+  .panel-head { font-size: 16px; }
+  .proj-name { font-size: 14px; }
+  .go-top { bottom: 12px; right: 12px; width: 36px; height: 36px; }
+}
+
+// ====== 骨架屏 ======
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.skel-card {
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 20px 16px;
+  text-align: center;
+}
+.skel-bar {
+  height: 14px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  margin: 10px auto;
+  animation: skel-pulse 1.5s ease-in-out infinite;
+}
+.w40 { width: 40%; } .w60 { width: 60%; } .w80 { width: 80%; }
+.skel-bar-short { height: 10px; margin: 6px auto; }
+@keyframes skel-pulse {
+  0%, 100% { opacity: 0.2; }
+  50%      { opacity: 0.5; }
+}
+@include phone {
+  .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
 }

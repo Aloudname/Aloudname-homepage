@@ -12,6 +12,22 @@ async function fetchGH(path) {
   return res.json()
 }
 
+// ===== localStorage 缓存层 (30min TTL) =====
+const CACHE_TTL = 30 * 60 * 1000
+
+async function cached(key, fetcher) {
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw) {
+      const { data, ts } = JSON.parse(raw)
+      if (Date.now() - ts < CACHE_TTL) return data
+    }
+  } catch (_) { /* ignore corrupt cache */ }
+  const data = await fetcher()
+  try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })) } catch (_) {}
+  return data
+}
+
 /** 获取用户资料 */
 export async function getUser(username) {
   return fetchGH(`/users/${username}`)
@@ -21,10 +37,16 @@ export async function getUser(username) {
 export async function getRepos(username) {
   return fetchGH(`/users/${username}/repos?sort=updated&per_page=100&type=owner`)
 }
+export async function getReposCached(username) {
+  return cached(`gh_repos_${username}`, () => getRepos(username))
+}
 
 /** 获取最近事件 */
 export async function getEvents(username) {
   return fetchGH(`/users/${username}/events?per_page=30`)
+}
+export async function getEventsCached(username) {
+  return cached(`gh_events_${username}`, () => getEvents(username))
 }
 
 /**

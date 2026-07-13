@@ -6,7 +6,7 @@
   <div class="post-page">
     <bannerView
       :imgUrl="bannerImage"
-      :titleName="post?.title || '文章详情'"
+      :titleName="post?.title || '文章详情'" height="50vh"
       ref="banner"
     />
 
@@ -136,6 +136,8 @@ export default {
   width: 70%;
   max-width: 900px;
   margin: -60px auto 40px;
+  @media (max-width: 1024px) { width: 85%; }
+  @media (max-width: 768px)  { width: 92%; margin-top: -30px; }
   position: relative;
   z-index: 2;
 }

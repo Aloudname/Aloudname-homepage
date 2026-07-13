@@ -5,10 +5,12 @@ module.exports = {
 
   chainWebpack: config => {
     // 使用 webpack 5 内置 asset/source 类型加载 .md 文件为纯文本
-    // 替代有兼容性问题的 vue-markdown-loader
     config.module.rule('md')
       .test(/\.md$/)
       .type('asset/source')
+
+    // 移除默认全量 prefetch，减少首屏带宽竞争
+    config.plugins.delete('prefetch')
   },
 
   devServer: {

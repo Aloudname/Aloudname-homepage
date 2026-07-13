@@ -1,7 +1,7 @@
 <template>
   <div class="dynamic-page">
     <!-- Banner -->
-    <bannerView :imgUrl="bannerImage" :titleName="page?.title || '页面'" ref="banner" />
+    <bannerView :imgUrl="bannerImage" :titleName="page?.title || 'ページ'" height="55vh" ref="banner" />
 
     <!-- 内容区 -->
     <div class="page-content" v-loading="loading">
@@ -73,6 +73,8 @@ export default {
   width: 70%;
   max-width: 900px;
   margin: -60px auto 40px;
+  @media (max-width: 1024px) { width: 85%; }
+  @media (max-width: 768px)  { width: 92%; margin-top: -30px; }
   position: relative;
   z-index: 2;
 }

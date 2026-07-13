@@ -219,7 +219,9 @@ export default {
       this.basicHeight = canvas.height = window.innerHeight
       this.basicParticles = []
       const cfg = this.layers.basicParticles
-      for (let i = 0; i < cfg.count; i++) {
+      const scale = window.innerWidth < 480 ? 0.3 : window.innerWidth < 768 ? 0.5 : 1
+      const count = Math.floor(cfg.count * scale)
+      for (let i = 0; i < count; i++) {
         this.basicParticles.push({
           x: Math.random() * this.basicWidth, y: Math.random() * this.basicHeight,
           vx: (Math.random() - 0.5) * cfg.speed, vy: (Math.random() - 0.5) * cfg.speed,
@@ -300,8 +302,9 @@ export default {
       this.advancedElapsed += dt
       ctx.clearRect(0, 0, this.advancedWidth, this.advancedHeight)
 
-      const target = cfg.maxCount
-      const toAdd = Math.min(Math.floor(this.advancedElapsed * cfg.spawnRate), target - this.advancedParticles.length)
+      const scale = window.innerWidth < 480 ? 0.3 : window.innerWidth < 768 ? 0.5 : 1
+      const target = Math.floor(cfg.maxCount * scale)
+      const toAdd = Math.min(Math.floor(this.advancedElapsed * cfg.spawnRate * scale), target - this.advancedParticles.length)
       for (let i = 0; i < toAdd; i++) this.advancedParticles.push(this.spawnParticle(cfg))
       if (toAdd > 0) this.advancedElapsed = 0
 

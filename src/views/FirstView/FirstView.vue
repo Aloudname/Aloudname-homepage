@@ -1,12 +1,22 @@
 <template>
   <div class="aboutBox" :style="pageBgStyle">
-    <bannerView :imgUrl="bannerImage" :titleName="title" ref="banner" />
+    <bannerView :imgUrl="bannerImage" :titleName="title" height="60vh" ref="banner" />
 
     <div class="mainBox">
       <!-- ====== 主内容区: GitHub 数据面板 ====== -->
       <div class="contentBox">
-        <div v-if="ghLoading" class="loading-card">
-          <i class="el-icon-loading"></i> 加载 GitHub 数据中...
+        <div v-if="ghLoading" class="skeleton-grid">
+          <div class="skel-card" v-for="n in 4" :key="n">
+            <div class="skel-bar w60"></div>
+            <div class="skel-bar w40 skel-bar-short"></div>
+          </div>
+        </div>
+        <div v-if="ghLoading" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+          <div class="skel-card"><div class="skel-bar w80"></div><div class="skel-bar w60 skel-bar-short"></div><div class="skel-bar w40 skel-bar-short"></div></div>
+          <div class="skel-card"><div class="skel-bar w80"></div><div class="skel-bar w60 skel-bar-short"></div><div class="skel-bar w40 skel-bar-short"></div></div>
+        </div>
+        <div v-if="ghLoading" class="skel-card">
+          <div class="skel-bar w80"></div><div class="skel-bar w60 skel-bar-short"></div><div class="skel-bar w40 skel-bar-short"></div>
         </div>
 
         <template v-else-if="ghUser">
@@ -118,7 +128,7 @@ import footerView from "@/components/footerView/index.vue"
 import VueMarkdown from "vue-markdown"
 import markdownRaw from "../home.md"
 import { getSectionConfig } from '@/services/pageConfigService'
-import { getUser, getRepos, getEvents, calcLanguages, getTopProjects, calcTotalStars, parseEvents } from '@/services/githubService'
+import { getUser, getReposCached, getEventsCached, calcLanguages, getTopProjects, calcTotalStars, parseEvents } from '@/services/githubService'
 import "./css/FirstView.scss"
 import "highlight.js/styles/github.css"
 import "github-markdown-css"
@@ -211,7 +221,7 @@ export default {
       try {
         const name = this.ghUsername || 'Aloudname'
         const [user, repos, events] = await Promise.all([
-          getUser(name), getRepos(name), getEvents(name),
+          getUser(name), getReposCached(name), getEventsCached(name),
         ])
         this.ghUser = user; this.ghRepos = repos; this.ghEvents = events
       } catch (err) {

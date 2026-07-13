@@ -12,17 +12,11 @@
       :config="cursorConfig"
     />
 
-    <!-- 页面过渡动画 -->
-    <transition
-      class="auto-scroll"
-      appear
-      name="animate__animated animate__bounce"
-      enter-active-class="animate__backInUp animate__slow"
-      leave-active-class="animate__fadeOutDownBig contron"
-    >
+    <!-- 页面过渡: 方向滑动 + mode out-in 消除重叠 -->
+    <transition :name="transitionName" mode="out-in">
       <router-view
         style="-webkit-backface-visibility: hidden"
-        :key="$route.path"
+        :key="$route.fullPath"
       />
     </transition>
 
@@ -41,9 +35,11 @@
 import pageConfigStore from '@/stores/pageConfig'
 import particleBg from '@/components/particleBg/index.vue'
 import cursorEffect from '@/components/cursorEffect/index.vue'
+import pageTransition from '@/mixins/pageTransition'
 
 export default {
   components: { particleBg, cursorEffect },
+  mixins: [pageTransition],
 
   data() {
     return {
@@ -134,6 +130,45 @@ export default {
   user-select: none;
   text-decoration: none;
   list-style: none;
+}
+
+// ====== 页面过渡动画 ======
+// 前进: 从左滑入
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-left-enter {
+  transform: translateX(36px);
+  opacity: 0;
+}
+.slide-left-leave-to {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+
+// 后退: 从右滑入
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-right-enter {
+  transform: translateX(-36px);
+  opacity: 0;
+}
+.slide-right-leave-to {
+  transform: translateX(24px);
+  opacity: 0;
+}
+
+// 同级切换: 淡入淡出
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.22s ease;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .contron {

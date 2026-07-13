@@ -2,7 +2,7 @@
   <div>
     <div
       class="bannerBox"
-      :style="{ background: 'url(' + imgUrl + ')', backgroundSize: 'cover' }"
+      :style="{ background: 'url(' + imgUrl + ')', backgroundSize: 'cover', height: height }"
     >
       <div class="coverBox">
         <div class="navBox">
@@ -61,6 +61,7 @@ export default {
   props: {
     imgUrl: { required: true },
     titleName: { required: true },
+    height: { type: String, default: '100vh' },
   },
 
   data() {

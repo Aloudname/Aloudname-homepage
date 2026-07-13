@@ -1,6 +1,11 @@
 <template>
   <div class="aboutBox" :style="pageBgStyle">
-    <bannerView :imgUrl="bannerImage" :titleName="title" height="60vh" ref="banner" />
+    <!-- 触发进度指示器（上滚时在顶部出现微光线） -->
+    <div class="trigger-indicator" :class="{ active: triggerProgress > 0 }">
+      <div class="trigger-glow" :style="{ width: triggerProgress * 100 + '%', opacity: triggerProgress }"></div>
+    </div>
+
+    <bannerView :imgUrl="bannerImage" :titleName="title" height="45vh" ref="banner" />
 
     <div class="mainBox">
       <!-- ====== 主内容区 ====== -->
@@ -147,7 +152,8 @@ import "github-markdown-css"
 // 隐藏游戏懒加载
 const GravityShepherd = () => import('@/views/public/GravityShepherd.vue')
 
-const THRESHOLD = 420  // 上滚超过此值触发游戏（需要刻意连续上滚才能触发）
+const TRIGGER_COUNT = 8    // 连续上滚 8 次触发
+const DECAY_MS = 400       // 400ms 内没有下一次上滚则计数归零
 
 const LANG_COLORS = {
   JavaScript:'#f1e05a', TypeScript:'#3178c6', Vue:'#41b883', Python:'#3572A5',
@@ -177,7 +183,10 @@ export default {
       observer: null,
       // 隐藏游戏
       gameActive: false,
-      overscroll: 0,
+      scrollCount: 0,        // 连续上滚计数
+      lastScrollTime: 0,     // 上次上滚时间戳
+      scrollDecayTimer: null, // 衰减定时器
+      triggerProgress: 0,    // 0-1 触发进度（用于视觉提示）
       gameBgImage: '',
       gameGradient: ['#1a1a2e', '#0f3460'],
       gamePColor: '#00ff88',
@@ -327,32 +336,50 @@ export default {
       })
     },
 
-    // ====== 隐藏游戏 ======
+    // ====== 隐藏游戏：连续上滚触发 ======
     onWheel(e) {
       if (this.gameActive || window.scrollY > 5) return
 
-      // 只处理向上滚动
+      // 向下滚 → 立即清零
       if (e.deltaY >= 0) {
-        this.overscroll *= 0.85  // 松手后快速回弹
+        this.resetScrollCount()
         return
       }
 
-      // 累积上滚量（降低系数，需要更多滚轮次数）
-      this.overscroll += Math.abs(e.deltaY) * 0.5
+      // 向上滚 → 计数+1
+      e.preventDefault()
+      const now = Date.now()
 
-      // 弹簧阻尼: 越接近阈值阻力越大
-      if (this.overscroll < THRESHOLD) {
-        const progress = this.overscroll / THRESHOLD
-        const resistance = 0.3 + (1 - progress) * 0.7  // 进度 0→阻力 100%, 进度 0.9→阻力 37%
-        this.overscroll *= resistance
-        e.preventDefault()
-      } else {
+      // 超过衰减时间窗口 → 重新开始计数
+      if (this.lastScrollTime && now - this.lastScrollTime > DECAY_MS) {
+        this.scrollCount = 0
+      }
+
+      this.scrollCount++
+      this.lastScrollTime = now
+      this.triggerProgress = Math.min(1, this.scrollCount / TRIGGER_COUNT)
+
+      // 重置衰减定时器
+      clearTimeout(this.scrollDecayTimer)
+      this.scrollDecayTimer = setTimeout(() => {
+        this.resetScrollCount()
+      }, DECAY_MS)
+
+      // 达到触发次数 → 激活游戏
+      if (this.scrollCount >= TRIGGER_COUNT) {
         this.activateGame()
       }
     },
 
+    resetScrollCount() {
+      this.scrollCount = 0
+      this.lastScrollTime = 0
+      this.triggerProgress = 0
+      clearTimeout(this.scrollDecayTimer)
+    },
+
     activateGame() {
-      this.overscroll = 0
+      this.resetScrollCount()
       this.gameActive = true
       document.body.style.overflow = 'hidden'
     },
